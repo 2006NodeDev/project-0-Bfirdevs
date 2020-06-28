@@ -8,7 +8,7 @@ export let reimRouter = express.Router()
 
 // get(read) all reimbursements from the reimbursments table
 reimRouter.get('/',(req:Request, res:Response)=>{
-    res.json(reim)
+    res.json(reim);
 })
 
 /* read reimbursement with a specific id
@@ -31,7 +31,7 @@ reimRouter.get('/:id', (req:Request, res:Response)=>{
         reim.forEach(element => {
             if(element.reimbursementId === +id ){
                 exist = true;
-                res.json(reim);
+                res.json(element);
             }
         })
         if(!exist){
@@ -40,7 +40,9 @@ reimRouter.get('/:id', (req:Request, res:Response)=>{
     }
 });
 
-// get reimbursement  with /:status_id
+// get reimbursement  with status 
+// URL: reimbursements/status/:statusId ?????
+
 reimRouter.get('/:statusId', (req:Request , res:Response)=>{
     let {status_id} = req.params;
     if(isNaN(+status_id)){
@@ -51,7 +53,6 @@ reimRouter.get('/:statusId', (req:Request , res:Response)=>{
             if(element.status === +status_id){
                 exist = true;
                 res.json(element);
-               // res.json(reim);
             }
         })
         if(!exist){
@@ -59,7 +60,8 @@ reimRouter.get('/:statusId', (req:Request , res:Response)=>{
         }
     }
 })
-// get reimbursement with user means author
+// get reimbursement with userid means author
+// URL: reimbursements/author/userId/:userId`  
 reimRouter.get('/:userId', (req:Request, res:Response)=>{
     let {user_id} = req.params;
     if(isNaN(+user_id)){
@@ -68,14 +70,16 @@ reimRouter.get('/:userId', (req:Request, res:Response)=>{
         let isExist = false;
         reim.forEach(element=>{
             isExist = true;
-            res.json(element);
-           //res.json(reim);
+           res.json(element);
         })
         if(!isExist){
             throw new DataNotFoundError;
         }
     }
 })
+
+// update reimbursement with patch method
+
 
 
 

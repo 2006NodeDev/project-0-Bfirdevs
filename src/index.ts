@@ -11,7 +11,7 @@ app.use(express.json())
 app.use(loggingMiddleware)
 
 app.use('/reimbursement', reimRouter)  // redirect all request on /reimbursement to the reimRouter
-app.use('/users', userRouter)
+app.use('/users', userRouter) // middleware to direct all requests on /users to the router
 
 
 app.use((err, req, res, next) =>{
