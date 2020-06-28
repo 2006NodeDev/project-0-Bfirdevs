@@ -18,7 +18,6 @@ reimRouter.get('/',(req:Request, res:Response)=>{
     if find the same id return it 
     else give not found error
 */
-
 reimRouter.get('/:id', (req:Request, res:Response)=>{
     let {id} = req.params
     // unary operator, it converts the variable on the left to a number
@@ -41,9 +40,8 @@ reimRouter.get('/:id', (req:Request, res:Response)=>{
     }
 });
 
-// get reimbursement status with /:status_id
-
-reimRouter.get('/status_id', (req:Request , res:Response)=>{
+// get reimbursement  with /:status_id
+reimRouter.get('/:statusId', (req:Request , res:Response)=>{
     let {status_id} = req.params;
     if(isNaN(+status_id)){
          throw new InvalidIdError;
@@ -61,10 +59,23 @@ reimRouter.get('/status_id', (req:Request , res:Response)=>{
         }
     }
 })
-
-
-
-
+// get reimbursement with user means author
+reimRouter.get('/:userId', (req:Request, res:Response)=>{
+    let {user_id} = req.params;
+    if(isNaN(+user_id)){
+        throw new InvalidIdError;
+    }else {
+        let isExist = false;
+        reim.forEach(element=>{
+            isExist = true;
+            res.json(element);
+           //res.json(reim);
+        })
+        if(!isExist){
+            throw new DataNotFoundError;
+        }
+    }
+})
 
 
 
