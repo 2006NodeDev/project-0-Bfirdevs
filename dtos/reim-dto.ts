@@ -5,8 +5,8 @@ export class ReimbursDTO{
     reimbursementId: number
 	author: number
 	amount: number
-    dateSubmitted: number
-    dateResolved: number
+    dateSubmitted: Date
+    dateResolved: Date
     description: string
     resolver: number
     status: number

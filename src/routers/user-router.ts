@@ -2,8 +2,10 @@ import express, { Request, Response, NextFunction } from 'express'
 import { Users } from '../models/Users';
 import { InvalidIdError } from '../errors/InvalidIdError';
 import { DataNotFoundError } from '../errors/DataNotFoundErrors';
+import { authenticationMiddleware } from '../middlewares/authentication-middleware';
 
 export let userRouter = express.Router();
+userRouter.use(authenticationMiddleware)
 
 // get all users
 userRouter.get('/', (req:Request, res:Response, next:NextFunction)=>{

@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction, response } from 'express'
 import { Reimbursement } from '../models/Reimbursement'
 import { InvalidIdError } from '../errors/InvalidIdError'
 import { DataNotFoundError } from '../errors/DataNotFoundErrors'
+import { authenticationMiddleware } from '../middlewares/authentication-middleware'
 
 
 export let reimRouter = express.Router()
@@ -82,7 +83,21 @@ reimRouter.get('/author/userId/:userId', (req:Request, res:Response)=>{
 
 
 
+//post reimbursement
+reimRouter.post('/', authenticationMiddleware, (req:Request, res:Response, next:NextFunction)=>{
+    let {
+        reimbursementId = 0,
+         author,
+         amount,
+        dateSubmitted,
+        dateResolved,
+        description,
+        resolver,
+        status,
+        type 
+    } = req.body
 
+})
 
 let reim: Reimbursement[] =
 [ {
