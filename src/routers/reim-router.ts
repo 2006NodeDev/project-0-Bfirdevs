@@ -43,7 +43,7 @@ reimRouter.get('/:id', (req:Request, res:Response)=>{
 // get reimbursement  with status 
 // URL: reimbursements/status/:statusId ?????
 
-reimRouter.get('/:statusId', (req:Request , res:Response)=>{
+reimRouter.get('/status/:statusId', (req:Request , res:Response)=>{
     let {status_id} = req.params;
     if(isNaN(+status_id)){
          throw new InvalidIdError;
@@ -62,7 +62,7 @@ reimRouter.get('/:statusId', (req:Request , res:Response)=>{
 })
 // get reimbursement with userid means author
 // URL: reimbursements/author/userId/:userId`  
-reimRouter.get('/:userId', (req:Request, res:Response)=>{
+reimRouter.get('/author/userId/:userId', (req:Request, res:Response)=>{
     let {user_id} = req.params;
     if(isNaN(+user_id)){
         throw new InvalidIdError;
@@ -83,10 +83,6 @@ reimRouter.get('/:userId', (req:Request, res:Response)=>{
 
 
 
-reimRouter.post('/', (req:Request, res:Response)=>{
-    console.log(req.body);
-    res.sendStatus(501)
-})
 
 let reim: Reimbursement[] =
 [ {

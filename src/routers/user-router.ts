@@ -34,7 +34,7 @@ userRouter.get('/:id', (req:Request, res:Response)=>{
 
 
 
-let users:Users[] =[
+export let users:Users[] =[
     {
         userId: 1, // primary key
         username: 'johnnydeep', // not null, unique

@@ -2,7 +2,7 @@
 export class Reimbursement {
     reimbursementId: number // primary key
     author: number // foreign key --> User not null
-    amouunt: number // not null
+    amount: number // not null
     dateSubmitted: Date // not null
     dateResolved: Date // not null
     description: string // not null

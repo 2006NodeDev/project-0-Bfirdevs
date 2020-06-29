@@ -1,6 +1,6 @@
 import session, { SessionOptions } from 'express'  
 
-const sessionConfig:SessionOptions = {
+const sessionConfig:SessionOptions= {
     secret: 'secret',
     cookie:{
         secure:false
@@ -8,4 +8,9 @@ const sessionConfig:SessionOptions = {
     resave:false,
     saveUninitialized:false
 }
-export const sessionMiddleware = session(sessionConfig)
+/*
+session is factory function
+config is the option
+it returns a function in the form of (req, res, next)
+*/
+export const sessionMiddleware = session(sessionConfig) 
