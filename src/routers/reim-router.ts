@@ -3,12 +3,14 @@ import { Reimbursement } from '../models/Reimbursement'
 import { InvalidIdError } from '../errors/InvalidIdError'
 import { DataNotFoundError } from '../errors/DataNotFoundErrors'
 import { authenticationMiddleware } from '../middlewares/authentication-middleware'
+import { loggingMiddleware } from '../middlewares/login-middleware'
+import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware'
 
 
 export let reimRouter = express.Router()
 
 // get(read) all reimbursements from the reimbursments table
-reimRouter.get('/',(req:Request, res:Response)=>{
+reimRouter.get('/',authorizationMiddleWare(['financemanager']), (req:Request, res:Response)=>{
     res.json(reim);
 })
 
@@ -19,7 +21,7 @@ reimRouter.get('/',(req:Request, res:Response)=>{
     if find the same id return it 
     else give not found error
 */
-reimRouter.get('/:id', (req:Request, res:Response)=>{
+reimRouter.get('/:id', authorizationMiddleWare(['financemanager', 'employee']), (req:Request, res:Response)=>{
     let {id} = req.params
     // unary operator, it converts the variable on the left to a number
     //the number on the left can be converted to a number it becomes NaN
@@ -82,9 +84,9 @@ reimRouter.get('/author/userId/:userId', (req:Request, res:Response)=>{
 // update reimbursement with patch method
 
 
-
+/*
 //post reimbursement
-reimRouter.post('/', authenticationMiddleware, (req:Request, res:Response, next:NextFunction)=>{
+reimRouter.post('/', loggingMiddleware ,authenticationMiddleware, (req:Request, res:Response, next:NextFunction)=>{
     let {
         reimbursementId = 0,
          author,
@@ -98,7 +100,7 @@ reimRouter.post('/', authenticationMiddleware, (req:Request, res:Response, next:
     } = req.body
 
 })
-
+*/
 let reim: Reimbursement[] =
 [ {
     reimbursementId: 1,
