@@ -1,5 +1,9 @@
 import { Pool } from 'pg';
-
+/*
+"Important: A process gets envrmnt variables when it starts 
+if you make envr variable while vscode/gitbash is running, it does not get the envr variable
+you have to restart  vscode/git-bash
+*/
 
 //entrypoint for all of the database files
 export const connectionPool: Pool = new Pool({

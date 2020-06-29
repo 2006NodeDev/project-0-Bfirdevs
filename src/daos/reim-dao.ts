@@ -2,6 +2,16 @@ import {PoolClient, QueryResult} from "pg";
 import {connectionPool} from ".";
 
 
+//how to get data in the form of Reimbursement[]
+
+
+
+
+
+
+
+
+
 // all async functions return  promise by default
 // promise is a representation of a future value or an error
 // async functions doesn't go to stack, it waits for promise to resolved then it goes back of the queue
@@ -10,6 +20,7 @@ export async function getAllReimbursement(){
     try {
         // await means ; wait for the promise to get resolved then move with next line/code/statement
         client = await connectionPool.connect();
+       
        let results: QueryResult= await client.query(`select * from ERS.reimbusement;`) // we can use both `` ''
        return results.rows;
     } catch (error) {

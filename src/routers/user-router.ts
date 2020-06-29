@@ -3,6 +3,7 @@ import { Users } from '../models/Users';
 import { InvalidIdError } from '../errors/InvalidIdError';
 import { DataNotFoundError } from '../errors/DataNotFoundErrors';
 import { authenticationMiddleware } from '../middlewares/authentication-middleware';
+import { Role } from '../models/Role';
 
 export let userRouter = express.Router();
 userRouter.use(authenticationMiddleware)
@@ -30,9 +31,6 @@ userRouter.get('/:id', (req:Request, res:Response)=>{
         }
     }
 })
-//
-
-
 
 
 

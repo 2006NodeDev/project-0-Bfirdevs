@@ -1,17 +1,18 @@
-import express, { Request, Response, NextFunction, response } from 'express'
+import express, { Request, Response, } from 'express'
 import { Reimbursement } from '../models/Reimbursement'
 import { InvalidIdError } from '../errors/InvalidIdError'
 import { DataNotFoundError } from '../errors/DataNotFoundErrors'
-import { authenticationMiddleware } from '../middlewares/authentication-middleware'
-import { loggingMiddleware } from '../middlewares/login-middleware'
-import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware'
+
+import { getAllReimbursement } from '../daos/reim-dao'
 
 
 export let reimRouter = express.Router()
 
+//,authorizationMiddleWare(['financemanager']), this line goes inside lines
 // get(read) all reimbursements from the reimbursments table
-reimRouter.get('/',authorizationMiddleWare(['financemanager']), (req:Request, res:Response)=>{
-    res.json(reim);
+reimRouter.get('/', async (req:Request, res: Response)=>{
+    let reimbursement = await getAllReimbursement()
+    res.json(reimbursement);
 })
 
 /* read reimbursement with a specific id
@@ -21,7 +22,7 @@ reimRouter.get('/',authorizationMiddleWare(['financemanager']), (req:Request, re
     if find the same id return it 
     else give not found error
 */
-reimRouter.get('/:id', authorizationMiddleWare(['financemanager', 'employee']), (req:Request, res:Response)=>{
+reimRouter.get('/:id', (req:Request, res:Response)=>{
     let {id} = req.params
     // unary operator, it converts the variable on the left to a number
     //the number on the left can be converted to a number it becomes NaN
@@ -106,8 +107,8 @@ let reim: Reimbursement[] =
     reimbursementId: 1,
     author: 2,
     amount: 500.23,
-    dateSubmitted: '2020-06-05 00:00:00',
-    dateResolved: '2020-06-05 00:00:00',
+    dateSubmitted: new Date('December 17, 1995'),
+    dateResolved: new Date('2020-06-05T00:00:00'),
     description: 'cost for hotel',
     resolver: 4,
     status: 2,
