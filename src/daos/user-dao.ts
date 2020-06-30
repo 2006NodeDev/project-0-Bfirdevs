@@ -3,6 +3,7 @@ import { connectionPool } from ".";
 import { UsersDTOConvertors } from "../utils/UsersDTOConvertors";
 import { DataNotFoundError } from "../errors/DataNotFoundErrors";
 import { UserNotFound } from "../errors/UserNotFoundError";
+import { Users } from "../models/Users";
 
 export async function getAllUsers(){
     let client: PoolClient
@@ -20,7 +21,7 @@ export async function getAllUsers(){
 }
 
 
-export async function findUserById(id:number){
+export async function getUserById(id:number){
     let client : PoolClient;
     try {
         client = await connectionPool.connect()
@@ -41,5 +42,24 @@ export async function findUserById(id:number){
         }
     }finally{
         client && client.release();
+    }
+}
+// Update User 
+    export async function UpdateExistingUser(UpdatedUser: Users):Promise <Users>{
+        let client : PoolClient
+        try {
+            client = await connectionPool.connect()
+
+            await client.query(`update ERS.users 
+                                            set "username" = $1, "password" = $2, "first_name" = $3, "last_name" = $4, "email" = $5, "role" = $6
+                                            where user_id = $7 returning "user_id" `,
+                                            [UpdatedUser.username, UpdatedUser.password, UpdatedUser.firstName, UpdatedUser.lastName, UpdatedUser.email, UpdatedUser.role, UpdatedUser.userId])
+            return getUserById(UpdatedUser.userId);
+            
+        }catch(e){
+            console.log(e)
+            throw new Error('An Unknown Error Occurred')
+    }finally{
+            client && client.release();
     }
 }
