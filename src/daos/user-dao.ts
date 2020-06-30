@@ -4,6 +4,11 @@ import { UsersDTOConvertors } from "../utils/UsersDTOConvertors";
 import { DataNotFoundError } from "../errors/DataNotFoundErrors";
 import { UserNotFound } from "../errors/UserNotFoundError";
 import { Users } from "../models/Users";
+import { AuthFailureError } from "../errors/AuthFailureError";
+
+
+
+
 
 export async function getAllUsers(){
     let client: PoolClient
@@ -29,13 +34,13 @@ export async function getUserById(id:number){
         //we fill in a value using an array as the second arg of the query function
         let results: QueryResult = await client.query('select u.user_id, u.username, u."password", u.email, r.role_id  from ERS.users u left join ERS.roles r on u."role" = r.role_id where u.user_id = $1;', [id])
         if(results.rowCount === 0){
-            throw new DataNotFoundError
+            throw new DataNotFoundError();
         }else {
             return UsersDTOConvertors(results.rows[0])
         }
     } catch (error) {
         if(error.message === 'User Not Found'){
-            throw new UserNotFound
+            throw new UserNotFound();
         } else {
             console.log(error)
             throw new Error ('Unhandled Error Occured')
@@ -61,5 +66,38 @@ export async function getUserById(id:number){
             throw new Error('An Unknown Error Occurred')
     }finally{
             client && client.release();
+    }
+}
+
+// login /getByUsername and Password
+export async function getUserByUsernameAndPassword(username:string, password:string): Promise<Users>{
+    let client : PoolClient
+    try {
+        // get connection
+        client = await connectionPool.connect()
+        //send the Query
+        let results = await client.query(`select u."user_id", 
+        u."username" , 
+        u."password" , 
+        u."firstname" ,
+        u."lastname",
+        u."email",
+        r."role_id" , 
+        r."role" 
+        from ERS.users u left join ERS.roles r on u."role" = r.role_id 
+        where u."username" = $1 and u."password" = $2;`,
+    [username, password])
+    if(results.rowCount === 0){
+        throw new UserNotFound;
+    }
+    return UsersDTOConvertors(results.rows[0])
+    } catch (error) {
+        if(error.message === 'User Not Found'){
+            throw new AuthFailureError();
+        }
+        console.log(error)
+        throw new Error('Unhandled Error Copied')
+    }finally {
+        client && client.release()
     }
 }

@@ -1,10 +1,10 @@
-import  express, { Response, Request } from 'express';
+import  express, { Response, Request, NextFunction } from 'express';
 import { loggingMiddleware } from './middlewares/login-middleware';
 import { sessionMiddleware } from './middlewares/session-middlewate';
 import { reimRouter } from './routers/reim-router';
-import { userRouter, users } from './routers/user-router';
+import { userRouter } from './routers/user-router';
 import { InvalidCredentialsError } from './errors/InvalidCredentialsError';
-import { AuthFailureError } from './errors/AuthFailureError';
+import { getUserByUsernameAndPassword } from './daos/user-dao';
 
 
 
@@ -19,27 +19,20 @@ app.use(sessionMiddleware)
 app.use('/reimbursement', reimRouter)  // redirect all request on /reimbursement to the reimRouter
 app.use('/users', userRouter) // middleware to direct all requests on /users to the router
 
-app.post('/login', (req:Request, res:Response)=>{
+app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
     let username = req.body.username
     let password = req.body.password
-    if(!username && password){
-        throw new InvalidCredentialsError;
+    if(!username || !password){
+        throw new InvalidCredentialsError()
     } else {
-        let IsExist = false;
-        for(const user of users){
-            if(user.username === username && user.password === password){
-                //after someone logs in sending them to them their user info
-                req.session.user = user
-                res.json(user)
-                IsExist = true;        
-            } 
+        try {
+            let user = await getUserByUsernameAndPassword(username, password)
+            req.session.user = user //  add user data to the session so, we can use that data in other requests
+            res.json(user)
+        }catch (e){
+            next(e)
         }
-        if(!IsExist){
-            throw new AuthFailureError()
-        }
-    }
-        
-    
+    }  
 })
 
 app.use((err, req, res, next) =>{
