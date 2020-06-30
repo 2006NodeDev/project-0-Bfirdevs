@@ -5,6 +5,7 @@ import { DataNotFoundError } from '../errors/DataNotFoundErrors';
 import { authenticationMiddleware } from '../middlewares/authentication-middleware';
 import { Role } from '../models/Role';
 
+
 export let userRouter = express.Router();
 userRouter.use(authenticationMiddleware)
 
@@ -42,7 +43,7 @@ export let users:Users[] =[
         firstName: 'Johnny', // not null
         lastName: 'Deep', // not null
         email: 'johnnydeep@gmail.com', // not null
-        role: 1 // not null
+        role: Role // not null
     },
     {
         userId: 2, // primary key
@@ -51,7 +52,7 @@ export let users:Users[] =[
         firstName: 'Al', // not null
         lastName: 'Pacino', // not null
         email: 'alpacino@gmail.com', // not null
-        role: 1 // not null
+        role: Role // not null
     },
     {
         userId: 3, // primary key
@@ -60,6 +61,6 @@ export let users:Users[] =[
         firstName: 'Angelina', // not null
         lastName: 'Jolie', // not null
         email: 'angelinajolie@gmail.com', // not null
-        role: 2 // not null
+        role: Role // not null
     }
 ]

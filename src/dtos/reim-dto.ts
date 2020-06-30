@@ -5,7 +5,7 @@ holds data in one format with the purpose of being converted to a different form
 */
 
 // this data is going to be representation of the reimbursement data that we get from database
-export class ReimbursDTO{
+export class ReimbursementDTO{
     reimbursementId: number
 	author: number
 	amount: number

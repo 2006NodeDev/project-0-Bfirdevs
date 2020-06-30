@@ -1,15 +1,10 @@
 import {PoolClient, QueryResult} from "pg";
 import {connectionPool} from ".";
+import { ReimburDTOtoReimburConvertor } from "../utils/ReimbursementDTOConvertor";
+import { DataNotFoundError } from "../errors/DataNotFoundErrors";
 
 
-//how to get data in the form of Reimbursement[]
-
-
-
-
-
-
-
+//this is how to get data in the form of Reimbursement[]
 
 
 // all async functions return  promise by default
@@ -22,7 +17,7 @@ export async function getAllReimbursement(){
         client = await connectionPool.connect();
        
        let results: QueryResult= await client.query(`select * from ERS.reimbusement;`) // we can use both `` ''
-       return results.rows;
+       return results.rows.map(ReimburDTOtoReimburConvertor);
     } catch (error) {
         // should do error processing in this catch
         console.log(error)
@@ -33,3 +28,20 @@ export async function getAllReimbursement(){
     }
 }
 
+export async function findReimbursementById(id:number){
+    let client : PoolClient;
+    try {
+        client = await connectionPool.connect()
+        let results: QueryResult= await client.query(`select * from ERS.reimbusement where reimbursementId = ${id} group by reimbursementId;`)
+        if(results.rowCount === 0){
+            throw new DataNotFoundError
+        }else {
+            return ReimburDTOtoReimburConvertor(results.rows[0])
+        }
+    } catch (error) {
+        console.log(error)
+        throw new Error('un-implemented error')
+    }finally{
+        client && client.release()
+    }
+}

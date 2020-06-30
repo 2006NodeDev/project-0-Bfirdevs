@@ -1,18 +1,22 @@
-import express, { Request, Response, } from 'express'
+import express, { Request, Response, NextFunction, } from 'express'
 import { Reimbursement } from '../models/Reimbursement'
 import { InvalidIdError } from '../errors/InvalidIdError'
 import { DataNotFoundError } from '../errors/DataNotFoundErrors'
 
-import { getAllReimbursement } from '../daos/reim-dao'
+import { getAllReimbursement, findReimbursementById } from '../daos/reim-dao'
 
 
 export let reimRouter = express.Router()
 
 //,authorizationMiddleWare(['financemanager']), this line goes inside lines
 // get(read) all reimbursements from the reimbursments table
-reimRouter.get('/', async (req:Request, res: Response)=>{
-    let reimbursement = await getAllReimbursement()
+reimRouter.get('/', async (req:Request, res: Response, next:NextFunction)=>{
+    try{
+        let reimbursement = await getAllReimbursement()
     res.json(reimbursement);
+    }catch(e){
+        next(e)
+    }   
 })
 
 /* read reimbursement with a specific id
@@ -22,24 +26,19 @@ reimRouter.get('/', async (req:Request, res: Response)=>{
     if find the same id return it 
     else give not found error
 */
-reimRouter.get('/:id', (req:Request, res:Response)=>{
+reimRouter.get('/:id', async (req:Request, res:Response, next:NextFunction)=>{
     let {id} = req.params
     // unary operator, it converts the variable on the left to a number
     //the number on the left can be converted to a number it becomes NaN
     // if it is converted a number then the condition true, the id input wasn't a number 
     if(isNaN(+id)){
-        throw new InvalidIdError
+        next(new InvalidIdError());
     }else {
-        let exist = false; 
-       // for (const reim in Reimbursement ){
-        reim.forEach(element => {
-            if(element.reimbursementId === +id ){
-                exist = true;
-                res.json(element);
-            }
-        })
-        if(!exist){
-            throw new DataNotFoundError;
+        try{
+            let reimbursement = await findReimbursementById(+id)
+            res.json(reimbursement)
+        }catch (error){
+            next(error);
         }
     }
 });
@@ -102,6 +101,7 @@ reimRouter.post('/', loggingMiddleware ,authenticationMiddleware, (req:Request, 
 
 })
 */
+
 let reim: Reimbursement[] =
 [ {
     reimbursementId: 1,
