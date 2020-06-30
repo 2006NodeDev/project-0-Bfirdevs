@@ -1,66 +1,41 @@
 import express, { Request, Response, NextFunction } from 'express'
-import { Users } from '../models/Users';
 import { InvalidIdError } from '../errors/InvalidIdError';
-import { DataNotFoundError } from '../errors/DataNotFoundErrors';
 import { authenticationMiddleware } from '../middlewares/authentication-middleware';
-import { Role } from '../models/Role';
+//import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
+import { getAllUsers } from '../daos/user-dao';
 
 
 export let userRouter = express.Router();
 userRouter.use(authenticationMiddleware)
 
 // get all users
-userRouter.get('/', (req:Request, res:Response, next:NextFunction)=>{
-    res.json(users);
+//userRouter.get('/', authorizationMiddleWare(['Finance Manager']), (req:Request, res:Response, next:NextFunction)=>{
+userRouter.get('/', async (req:Request, res:Response, next:NextFunction)=>{
+    //res.json(users);
+    // interacting database is asynchronous
+    // which means getAlluser function returns a promise
+    try {
+        let allUsers = getAllUsers()
+        res.json(allUsers)
+    } catch (error) {
+        next(error)
+    }
 })
 
+//userRouter.get('/:id',authorizationMiddleWare(['Admin', 'Finance Manager']) ,(req:Request, res:Response)=>{
 // get users by id
-userRouter.get('/:id', (req:Request, res:Response)=>{
+userRouter.get('/:id', async(req:Request, res:Response, next: NextFunction)=>{
     let {id} = req.params;
     if(isNaN(+id)){
-        throw InvalidIdError;
+        next (new InvalidIdError());
     }else {
-        let isExist = false;
-        for(const user of users){
-            if(user.userId === +id){ // + sign convert the id to a number
-                res.json(user);
-                isExist = true;
-            }
-        }
-        if(!isExist){
-            throw new DataNotFoundError;
-        }
+       try {
+        let users = await findUserById(+id)
+        res.json(users);
+       } catch (error) {
+           next(error);
+       }
     }
 })
 
 
-
-export let users:Users[] =[
-    {
-        userId: 1, // primary key
-        username: 'johnnydeep', // not null, unique
-        password: 'johnnydeep123', // not null
-        firstName: 'Johnny', // not null
-        lastName: 'Deep', // not null
-        email: 'johnnydeep@gmail.com', // not null
-        role: Role // not null
-    },
-    {
-        userId: 2, // primary key
-        username: 'alpacino', // not null, unique
-        password: 'alpacino123', // not null
-        firstName: 'Al', // not null
-        lastName: 'Pacino', // not null
-        email: 'alpacino@gmail.com', // not null
-        role: Role // not null
-    },
-    {
-        userId: 3, // primary key
-        username: 'angelinajolie', // not null, unique
-        password: 'angelinajolie123', // not null
-        firstName: 'Angelina', // not null
-        lastName: 'Jolie', // not null
-        email: 'angelinajolie@gmail.com', // not null
-        role: Role // not null
-    }
-]
