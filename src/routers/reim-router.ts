@@ -19,18 +19,12 @@ reimRouter.get('/', async (req:Request, res: Response, next:NextFunction)=>{
     }   
 })
 
-/* read reimbursement with a specific id
-    require id input
-    if id is not number throw error
-    if id is number go through each id from the table 
-    if find the same id return it 
-    else give not found error
-*/
-reimRouter.get('/:id', async (req:Request, res:Response, next:NextFunction)=>{
-    let {id} = req.params
-    // unary operator, it converts the variable on the left to a number
+ // + unary operator, it converts the variable on the left to a number
     //the number on the left can be converted to a number it becomes NaN
     // if it is converted a number then the condition true, the id input wasn't a number 
+reimRouter.get('/:id', async (req:Request, res:Response, next:NextFunction)=>{
+    let {id} = req.params
+
     if(isNaN(+id)){
         next(new InvalidIdError());
     }else {

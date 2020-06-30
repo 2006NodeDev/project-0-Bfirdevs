@@ -45,3 +45,39 @@ export async function findReimbursementById(id:number){
         client && client.release()
     }
 }
+
+export async function findReimbursementByStatusId(statusId:number){
+    let client : PoolClient;
+    try {
+        client = await connectionPool.connect()
+        let results: QueryResult= await client.query(`select * from ERS.reimbusement where reimbursementId = ${statusId} group by reimbursementId;`)
+        if(results.rowCount === 0){
+            throw new DataNotFoundError
+        }else {
+            return ReimburDTOtoReimburConvertor(results.rows[0])
+        }
+    } catch (error) {
+        console.log(error)
+        throw new Error('un-implemented error')
+    }finally{
+        client && client.release()
+    }
+} 
+
+export async function findReimbursementByUserId(userId:number){
+    let client : PoolClient;
+    try {
+        client = await connectionPool.connect()
+        let results: QueryResult= await client.query(`select * from ERS.reimbusement where reimbursementId = ${userId} group by reimbursementId;`)
+        if(results.rowCount === 0){
+            throw new DataNotFoundError
+        }else {
+            return ReimburDTOtoReimburConvertor(results.rows[0])
+        }
+    } catch (error) {
+        console.log(error)
+        throw new Error('un-implemented error')
+    }finally{
+        client && client.release()
+    }
+}
