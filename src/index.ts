@@ -12,7 +12,9 @@ const app = express();
 
 app.use(express.json())
 // custom middleware to run on all request
+
 app.use(loggingMiddleware)
+
 //session middleware to track connections to our server
 app.use(sessionMiddleware)
 

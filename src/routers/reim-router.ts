@@ -1,9 +1,9 @@
 import express, { Request, Response, NextFunction, } from 'express'
-import { Reimbursement } from '../models/Reimbursement'
+//import { Reimbursement } from '../models/Reimbursement'
 import { InvalidIdError } from '../errors/InvalidIdError'
 
-import { getAllReimbursement, SubmitNewReimbursement, UpdateReimbursementInfo, findReimbursementByUserId, findReimbursementByStatusId } from '../daos/reim-dao'
-import { UserMissingInputError } from '../errors/UserMissingInputError'
+import { getAllReimbursement, findReimbursementByUserId, findReimbursementByStatusId } from '../daos/reim-dao'
+//import { UserMissingInputError } from '../errors/UserMissingInputError'
 //import { authenticationMiddleware } from '../middlewares/authentication-middleware'
 
 
@@ -57,7 +57,7 @@ reimRouter.get('/author/userId/:userId', async (req:Request, res:Response, next:
         }
     }
 })
-
+/*
 // update reimbursement with patch method
 reimRouter.patch('/', async(req:Request, res:Response, next:NextFunction) => {
     let {
@@ -151,7 +151,7 @@ reimRouter.post('/', async(req: Request, res: Response, next:NextFunction) => {
     }
 })
 
-/*
+
 let reim: Reimbursement[] =
 [ {
     reimbursementId: 1,

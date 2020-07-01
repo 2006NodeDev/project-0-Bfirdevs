@@ -41,7 +41,7 @@ export async function getAllReimbursement(): Promise<Reimbursement[]>{
 }
 
 
-export async function findReimbursementByStatusId(statusId:number):Promise<Reimbursement>{
+export async function findReimbursementByStatusId(statusId:number):Promise<Reimbursement[]>{
     let client : PoolClient;
     try {
         client = await connectionPool.connect()
@@ -66,7 +66,7 @@ export async function findReimbursementByStatusId(statusId:number):Promise<Reimb
         if(results.rowCount === 0){
             throw new DataNotFoundError
         }else {
-            return ReimburDTOtoReimburConvertor(results.rows[0])
+            return results.rows.map(ReimburDTOtoReimburConvertor);
         }
     } catch (error) {
         console.log(error)
@@ -76,7 +76,7 @@ export async function findReimbursementByStatusId(statusId:number):Promise<Reimb
     }
 } 
 
-export async function findReimbursementByUserId(userId:number):Promise<Reimbursement>{
+export async function findReimbursementByUserId(userId:number):Promise<Reimbursement[]>{
     let client : PoolClient;
     try {
         client = await connectionPool.connect()
@@ -99,7 +99,7 @@ export async function findReimbursementByUserId(userId:number):Promise<Reimburse
         if(results.rowCount === 0){
             throw new DataNotFoundError
         }else {
-            return ReimburDTOtoReimburConvertor(results.rows[0])
+            return results.rows.map(ReimburDTOtoReimburConvertor);
         }
     } catch (error) {
         console.log(error)
@@ -109,8 +109,9 @@ export async function findReimbursementByUserId(userId:number):Promise<Reimburse
     }
 }
 
+/*
 // Submit Reimbursement Post Method
-export async function SubmitNewReimbursement(newReim: Reimbursement):Promise<Reimbursement>{
+export async function SubmitNewReimbursement(newReim: Reimbursement):Promise<Reimbursement[]>{
     let client: PoolClient
     try {
         client = await connectionPool.connect()
@@ -124,3 +125,5 @@ export async function SubmitNewReimbursement(newReim: Reimbursement):Promise<Rei
 export async function UpdateReimbursementInfo(UpdatedReimbursement: Reimbursement): Promise<Reimbursement>{
     let client
 }
+
+*/
