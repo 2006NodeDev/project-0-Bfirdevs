@@ -26,20 +26,21 @@ export async function getAllUsers(){
 }
 
 
-export async function getUserById(id:number){
+export async function getUserById(id:number):Promise<Users>{
     let client : PoolClient;
     try {
         client = await connectionPool.connect()
         //$1 specifies the paramater
         //we fill in a value using an array as the second arg of the query function
         let results: QueryResult = await client.query('select u.user_id, u.username, u."password", u.email, r.role_id  from ERS.users u left join ERS.roles r on u."role" = r.role_id where u.user_id = $1;', [id])
+       
         if(results.rowCount === 0){
             throw new DataNotFoundError();
         }else {
             return UsersDTOConvertors(results.rows[0])
         }
     } catch (error) {
-        if(error.message === 'User Not Found'){
+        if(error.message === 'Item Not Found'){
             throw new UserNotFound();
         } else {
             console.log(error)

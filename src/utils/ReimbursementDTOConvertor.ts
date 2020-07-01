@@ -2,15 +2,16 @@ import { ReimbursementDTO } from "../dtos/reim-dto";
 import { Reimbursement } from "../models/Reimbursement";
 
 export function ReimburDTOtoReimburConvertor(rdto:ReimbursementDTO): Reimbursement{
-    
     return {
-        reimbursementId:rdto.reimbursementId,
+        reimbursementId: rdto.reimbursementId,
         author: rdto.author,
         amount: rdto.amount,
-        dateSubmitted: rdto.dateSubmitted.getFullYear(),
-        dateResolved: rdto.dateResolved.getFullYear(),
+        dateSubmitted: new Date(rdto.dateSubmitted),
+        dateResolved: new Date(rdto.dateSubmitted),
         description: rdto.description,
         resolver: rdto.resolver,
-        status: rdto.status
+        status: rdto.status,
+        type: rdto.status
     }
+ 
 }

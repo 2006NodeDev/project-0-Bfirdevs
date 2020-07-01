@@ -3,7 +3,9 @@ import { Reimbursement } from '../models/Reimbursement'
 import { InvalidIdError } from '../errors/InvalidIdError'
 import { DataNotFoundError } from '../errors/DataNotFoundErrors'
 
-import { getAllReimbursement, findReimbursementById } from '../daos/reim-dao'
+import { getAllReimbursement, SubmitNewReimbursement, UpdateReimbursementInfo } from '../daos/reim-dao'
+import { UserMissingInputError } from '../errors/UserMissingInputError'
+//import { authenticationMiddleware } from '../middlewares/authentication-middleware'
 
 
 export let reimRouter = express.Router()
@@ -22,28 +24,15 @@ reimRouter.get('/', async (req:Request, res: Response, next:NextFunction)=>{
  // + unary operator, it converts the variable on the left to a number
     //the number on the left can be converted to a number it becomes NaN
     // if it is converted a number then the condition true, the id input wasn't a number 
-reimRouter.get('/:id', async (req:Request, res:Response, next:NextFunction)=>{
-    let {id} = req.params
 
-    if(isNaN(+id)){
-        next(new InvalidIdError());
-    }else {
-        try{
-            let reimbursement = await findReimbursementById(+id)
-            res.json(reimbursement)
-        }catch (error){
-            next(error);
-        }
-    }
-});
 
 // get reimbursement  with status 
-// URL: reimbursements/status/:statusId ?????
+// URL: reimbursements/status/:statusId 
 
 reimRouter.get('/status/:statusId', (req:Request , res:Response)=>{
     let {status_id} = req.params;
     if(isNaN(+status_id)){
-         throw new InvalidIdError;
+         throw new InvalidIdError();
     }else {
         let exist = false;
         reim.forEach(element =>{
@@ -53,16 +42,17 @@ reimRouter.get('/status/:statusId', (req:Request , res:Response)=>{
             }
         })
         if(!exist){
-            throw new DataNotFoundError;
+            throw new DataNotFoundError();
         }
     }
 })
+
 // get reimbursement with userid means author
 // URL: reimbursements/author/userId/:userId`  
 reimRouter.get('/author/userId/:userId', (req:Request, res:Response)=>{
-    let {user_id} = req.params;
-    if(isNaN(+user_id)){
-        throw new InvalidIdError;
+    let {userId} = req.params;
+    if(isNaN(+userId)){
+        throw new InvalidIdError();
     }else {
         let isExist = false;
         reim.forEach(element=>{
@@ -70,32 +60,105 @@ reimRouter.get('/author/userId/:userId', (req:Request, res:Response)=>{
            res.json(element);
         })
         if(!isExist){
-            throw new DataNotFoundError;
+            throw new DataNotFoundError();
         }
     }
 })
 
 // update reimbursement with patch method
-
-
-/*
-//post reimbursement
-reimRouter.post('/', loggingMiddleware ,authenticationMiddleware, (req:Request, res:Response, next:NextFunction)=>{
+reimRouter.patch('/', async(req:Request, res:Response, next:NextFunction) => {
     let {
-        reimbursementId = 0,
-         author,
-         amount,
+        reimbursementId,
+        author,
+        amount,
         dateSubmitted,
         dateResolved,
         description,
         resolver,
         status,
-        type 
-    } = req.body
+        type
+    } = req.body 
+    if(!reimbursementId){
+        throw new UserMissingInputError();
+    }else if (isNaN(+reimbursementId)) {
+        throw new InvalidIdError();
+    }else {
+        let UpdateReimbursement: Reimbursement = {
+            reimbursementId,
+            author,
+            amount,
+            dateSubmitted,
+            dateResolved,
+            description,
+            resolver,
+            status,
+            type
+        }
+        UpdateReimbursement.author = author 
+        UpdateReimbursement.amount = amount 
+        UpdateReimbursement.dateSubmitted = dateSubmitted
+        UpdateReimbursement.dateResolved = dateResolved
+        UpdateReimbursement.description = description
+        UpdateReimbursement.resolver = resolver 
+        UpdateReimbursement.status = status
+        UpdateReimbursement.type = type
+        try {
+            let results = await UpdateReimbursementInfo(UpdateReimbursement)
+            res.json(results)
+        } catch (error) {
+            next(error)
+        }
+    }
 
 })
-*/
 
+
+
+
+// post reimbursement
+
+reimRouter.post('/', async(req: Request, res: Response, next:NextFunction) => {
+    console.log(req.body);
+    let {
+        author,
+        amount,
+        dateSubmitted,
+        description,
+        status,
+        type
+    } = req.body
+    if(author && amount && dateSubmitted && description && status && type){
+        let newReimbursement: Reimbursement = {
+            reimbursementId: 0,
+            author,
+            amount,
+            dateSubmitted,
+            dateResolved: null,
+            description, 
+            resolver: null,
+            status,
+            type
+        }
+        newReimbursement.author = author || null
+        newReimbursement.amount = amount || null
+        newReimbursement.dateSubmitted = dateSubmitted || null
+        newReimbursement.dateResolved = null
+        newReimbursement.description = description || null
+        newReimbursement.resolver = null
+        newReimbursement.status = status || null
+        newReimbursement.type = type || null
+        try {
+            let newAddedReim = await SubmitNewReimbursement(newReimbursement)
+            res.json(newAddedReim)
+        } catch (error) {
+            next(error)
+        }
+    }else {
+        throw new UserMissingInputError();
+    }
+})
+
+/*
 let reim: Reimbursement[] =
 [ {
     reimbursementId: 1,
@@ -110,3 +173,4 @@ let reim: Reimbursement[] =
     }
 ]
 
+*/
