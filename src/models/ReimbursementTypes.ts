@@ -3,6 +3,6 @@ The ReimbursementType model is used to track what kind of reimbursement is being
 ```javascript
 */
 export class ReimbursementType{
-  typeId: number // primary key
+  type_id: number // primary key
   type: string // not null, unique
 }

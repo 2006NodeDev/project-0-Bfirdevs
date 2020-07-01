@@ -2,9 +2,9 @@ import express, { Request, Response, NextFunction, } from 'express'
 //import { Reimbursement } from '../models/Reimbursement'
 import { InvalidIdError } from '../errors/InvalidIdError'
 
-import { getAllReimbursement, findReimbursementByUserId, findReimbursementByStatusId } from '../daos/reim-dao'
-//import { UserMissingInputError } from '../errors/UserMissingInputError'
-//import { authenticationMiddleware } from '../middlewares/authentication-middleware'
+import { getAllReimbursement, findReimbursementByUserId, findReimbursementByStatusId, SubmitNewReimbursement, UpdateReimbursementInfo } from '../daos/reim-dao'
+import { UserMissingInputError } from '../errors/UserMissingInputError'
+import { Reimbursement } from '../models/Reimbursement'
 
 
 export let reimRouter = express.Router()
@@ -29,12 +29,12 @@ reimRouter.get('/', async (req:Request, res: Response, next:NextFunction)=>{
 // URL: reimbursements/status/:statusId 
 
 reimRouter.get('/status/:statusId', async (req:Request , res:Response, next:NextFunction)=>{
-    let {statusId} = req.params;
-    if(isNaN(+statusId)){
+    let {status_id} = req.params;
+    if(isNaN(+status_id)){
          throw new InvalidIdError();
     }else {
         try {
-            let reimByStatusId = await findReimbursementByStatusId(+statusId);
+            let reimByStatusId = await findReimbursementByStatusId(+status_id);
             res.json(reimByStatusId);
         } catch (error) {
             next(error);
@@ -57,11 +57,11 @@ reimRouter.get('/author/userId/:userId', async (req:Request, res:Response, next:
         }
     }
 })
-/*
+
 // update reimbursement with patch method
 reimRouter.patch('/', async(req:Request, res:Response, next:NextFunction) => {
     let {
-        reimbursementId,
+        reimbursement_id,
         author,
         amount,
         dateSubmitted,
@@ -71,13 +71,13 @@ reimRouter.patch('/', async(req:Request, res:Response, next:NextFunction) => {
         status,
         type
     } = req.body 
-    if(!reimbursementId){
+    if(!reimbursement_id){
         throw new UserMissingInputError();
-    }else if (isNaN(+reimbursementId)) {
+    }else if (isNaN(+reimbursement_id)) {
         throw new InvalidIdError();
     }else {
         let UpdateReimbursement: Reimbursement = {
-            reimbursementId,
+            reimbursement_id,
             author,
             amount,
             dateSubmitted,
@@ -109,7 +109,7 @@ reimRouter.patch('/', async(req:Request, res:Response, next:NextFunction) => {
 
 
 // post reimbursement
-
+//authorizationMiddleWare(['admin']
 reimRouter.post('/', async(req: Request, res: Response, next:NextFunction) => {
     console.log(req.body);
     let {
@@ -120,9 +120,10 @@ reimRouter.post('/', async(req: Request, res: Response, next:NextFunction) => {
         status,
         type
     } = req.body
+    
     if(author && amount && dateSubmitted && description && status && type){
         let newReimbursement: Reimbursement = {
-            reimbursementId: 0,
+            reimbursement_id: 0,
             author,
             amount,
             dateSubmitted,
@@ -132,14 +133,14 @@ reimRouter.post('/', async(req: Request, res: Response, next:NextFunction) => {
             status,
             type
         }
-        newReimbursement.author = author || null
-        newReimbursement.amount = amount || null
+        newReimbursement.author = author 
+        newReimbursement.amount = amount 
         newReimbursement.dateSubmitted = dateSubmitted || null
         newReimbursement.dateResolved = null
         newReimbursement.description = description || null
         newReimbursement.resolver = null
         newReimbursement.status = status || null
-        newReimbursement.type = type || null
+        newReimbursement.type = type 
         try {
             let newAddedReim = await SubmitNewReimbursement(newReimbursement)
             res.json(newAddedReim)
@@ -152,6 +153,7 @@ reimRouter.post('/', async(req: Request, res: Response, next:NextFunction) => {
 })
 
 
+/*
 let reim: Reimbursement[] =
 [ {
     reimbursementId: 1,

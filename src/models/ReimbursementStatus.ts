@@ -3,6 +3,6 @@ The ReimbursementStatus model is used to track the status of reimbursements. Sta
 */
 
 export class ReimbursementStatus{
-  statusId: number  // primary key
+  status_id: number  // primary key
   status: string  // not null, unique
 }

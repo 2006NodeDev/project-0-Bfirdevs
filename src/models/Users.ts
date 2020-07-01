@@ -1,7 +1,7 @@
 
 
 export class Users{
-  	userId: number // primary key
+  	user_id: number // primary key
 	username: string // not null, unique
 	password: string // not null
 	firstName: string // not null

@@ -59,8 +59,8 @@ export async function getUserById(id:number):Promise<Users>{
             await client.query(`update ERS.users 
                                             set "username" = $1, "password" = $2, "first_name" = $3, "last_name" = $4, "email" = $5, "role" = $6
                                             where user_id = $7 returning "user_id" `,
-                                            [UpdatedUser.username, UpdatedUser.password, UpdatedUser.firstName, UpdatedUser.lastName, UpdatedUser.email, UpdatedUser.role, UpdatedUser.userId])
-            return getUserById(UpdatedUser.userId);
+                                            [UpdatedUser.username, UpdatedUser.password, UpdatedUser.firstName, UpdatedUser.lastName, UpdatedUser.email, UpdatedUser.role, UpdatedUser.user_id])
+            return getUserById(UpdatedUser.user_id);
             
         }catch(e){
             console.log(e)
@@ -86,8 +86,7 @@ export async function getUserByUsernameAndPassword(username:string, password:str
         r."role_id" , 
         r."role" 
         from ERS.users u left join ERS.roles r on u."role" = r.role_id 
-        where u."username" = $1 and u."password" = $2;`,
-    [username, password])
+        where u."username" = $1 and u."password" = $2;`, [username, password])
     if(results.rowCount === 0){
         throw new UserNotFound;
     }

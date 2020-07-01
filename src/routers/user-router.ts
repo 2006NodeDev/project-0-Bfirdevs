@@ -45,7 +45,7 @@ userRouter.get('/:id', authorizationMiddleWare(['Finance Manager']) ,async(req:R
 
 userRouter.patch('/', authorizationMiddleWare(['admin']), async (req:Request, res:Response, next:NextFunction)=>{
     let {
-        userId,
+        user_id,
         username,
         password,
         firstName,
@@ -53,11 +53,11 @@ userRouter.patch('/', authorizationMiddleWare(['admin']), async (req:Request, re
         email,
         role
     } = req.body 
-    if(isNaN(+userId)){
+    if(isNaN(+user_id)){
         throw new InvalidIdError
     } else {
         let UpdatedUser: Users = {
-            userId,
+            user_id,
             username,
             password,
             firstName,
