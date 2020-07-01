@@ -1,9 +1,8 @@
 import express, { Request, Response, NextFunction, } from 'express'
 import { Reimbursement } from '../models/Reimbursement'
 import { InvalidIdError } from '../errors/InvalidIdError'
-import { DataNotFoundError } from '../errors/DataNotFoundErrors'
 
-import { getAllReimbursement, SubmitNewReimbursement, UpdateReimbursementInfo } from '../daos/reim-dao'
+import { getAllReimbursement, SubmitNewReimbursement, UpdateReimbursementInfo, findReimbursementByUserId, findReimbursementByStatusId } from '../daos/reim-dao'
 import { UserMissingInputError } from '../errors/UserMissingInputError'
 //import { authenticationMiddleware } from '../middlewares/authentication-middleware'
 
@@ -29,38 +28,32 @@ reimRouter.get('/', async (req:Request, res: Response, next:NextFunction)=>{
 // get reimbursement  with status 
 // URL: reimbursements/status/:statusId 
 
-reimRouter.get('/status/:statusId', (req:Request , res:Response)=>{
-    let {status_id} = req.params;
-    if(isNaN(+status_id)){
+reimRouter.get('/status/:statusId', async (req:Request , res:Response, next:NextFunction)=>{
+    let {statusId} = req.params;
+    if(isNaN(+statusId)){
          throw new InvalidIdError();
     }else {
-        let exist = false;
-        reim.forEach(element =>{
-            if(element.status === +status_id){
-                exist = true;
-                res.json(element);
-            }
-        })
-        if(!exist){
-            throw new DataNotFoundError();
+        try {
+            let reimByStatusId = await findReimbursementByStatusId(+statusId);
+            res.json(reimByStatusId);
+        } catch (error) {
+            next(error);
         }
     }
 })
 
 // get reimbursement with userid means author
 // URL: reimbursements/author/userId/:userId`  
-reimRouter.get('/author/userId/:userId', (req:Request, res:Response)=>{
+reimRouter.get('/author/userId/:userId', async (req:Request, res:Response, next:NextFunction)=>{
     let {userId} = req.params;
     if(isNaN(+userId)){
         throw new InvalidIdError();
     }else {
-        let isExist = false;
-        reim.forEach(element=>{
-            isExist = true;
-           res.json(element);
-        })
-        if(!isExist){
-            throw new DataNotFoundError();
+        try {
+            let reimByUserId = await findReimbursementByUserId(+userId)
+            res.json(reimByUserId)
+        } catch (error) {
+            next(error)
         }
     }
 })
