@@ -1,83 +1,64 @@
 import express, { Request, Response, NextFunction } from 'express'
-import { InvalidIdError } from '../errors/InvalidIdError';
-import { authenticationMiddleware } from '../middlewares/authentication-middleware';
-//import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
-import { getAllUsers, getUserById, UpdateExistingUser } from '../daos/user-dao';
-import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
-import { Users } from '../models/Users';
+
+import { getAllUsers, findUserById } from '../daos/user-dao';
 
 
 export let userRouter = express.Router();
-userRouter.use(authenticationMiddleware)
 
-// get all users
 
-userRouter.get('/', authorizationMiddleWare(['Admin']) ,async (req:Request, res:Response, next:NextFunction)=>{
-    //res.json(users);
-    // interacting database is asynchronous
-    // which means getAlluser function returns a promise
+
+//userRouter.use(authenticationMiddleware)
+
+// get all authorizationMiddleWare(['Admin']
+userRouter.get('/', async (req:Request, res:Response, next:NextFunction)=>{
     try {
-        let allUsers = getAllUsers()
-        res.json(allUsers)
+        let users = await getAllUsers()
+        res.json(users)
     } catch (error) {
         next(error)
     }
+  
 })
 
-//userRouter.get('/:id',authorizationMiddleWare(['Admin', 'Finance Manager']) ,(req:Request, res:Response)=>{
-// get users by id
-userRouter.get('/:id', authorizationMiddleWare(['Finance Manager']) ,async(req:Request, res:Response, next: NextFunction)=>{
-    let {id} = req.params;
+
+
+
+// get by id
+userRouter.get('/:id', async (req:Request, res:Response, next:NextFunction) =>{
+    let {id} = req.params
     if(isNaN(+id)){
-        next (new InvalidIdError());
+        res.status(400).send('Id should be a number')
     }else {
-       try {
-        let users = await getUserById(+id)
-        res.json(users);
-       } catch (error) {
-           next(error);
-       }
-    }
-})
-
-
-// Update User (Patch, Role:Admin)
-
-userRouter.patch('/', authorizationMiddleWare(['admin']), async (req:Request, res:Response, next:NextFunction)=>{
-    let {
-        user_id,
-        username,
-        password,
-        firstName,
-        lastName,
-        email,
-        role
-    } = req.body 
-    if(isNaN(+user_id)){
-        throw new InvalidIdError
-    } else {
-        let UpdatedUser: Users = {
-            user_id,
-            username,
-            password,
-            firstName,
-            lastName,
-            email,
-            role
-        }
-        // not sure about this undefined
-        UpdatedUser.username = username || undefined
-        UpdatedUser.password = password || undefined
-        UpdatedUser.firstName = firstName || undefined
-        UpdatedUser.lastName = lastName || undefined
-        UpdatedUser.email = email || undefined
-        UpdatedUser.role = role || undefined
         try {
-            let result = await UpdateExistingUser(UpdatedUser)
-            res.json(result)
+            let userById = await findUserById(+id)
+            res.json(userById)
         } catch (error) {
             next(error)
         }
     }
-    
 })
+
+  
+
+/*
+userRouter.get('/:id', authorizationMiddleware(['admin','finance-manager','Employee']), async (req:Request, res:Response, next:NextFunction) => {
+    let {id} = req.params;
+    if(isNaN(+id)){
+        next(new UserIdInputError)
+    }
+    else if(req.session.user.role === "user" && req.session.user.userId !== +id){
+        next(new UnauthorizedEndPointError)
+    }
+    else{
+        try{
+            let user = await getUserById(+id)
+            res.json(user)
+        } catch (e){
+            next(e)
+        }
+    }
+}
+*/
+
+
+

@@ -2,7 +2,7 @@
 import session, { SessionOptions } from 'express-session'
 
 const sessionConfig:SessionOptions = {
-    secret: 'secret', // needs to be updated
+    secret: 'secret', // needs to be updated( 'secret'  this is not what we should do in production)
     cookie:{
         secure:false
     },

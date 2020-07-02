@@ -1,50 +1,52 @@
-import  express, { Response, Request, NextFunction } from 'express';
-import { loggingMiddleware } from './middlewares/login-middleware';
-import { sessionMiddleware } from './middlewares/session-middlewate';
+import  express from 'express';
 import { reimRouter } from './routers/reim-router';
 import { userRouter } from './routers/user-router';
-import { InvalidCredentialsError } from './errors/InvalidCredentialsError';
-import { getUserByUsernameAndPassword } from './daos/user-dao';
+
+
 
 
 
 const app = express();
 
 app.use(express.json())
+//app.use(loggingMiddleware)
+//app.use(sessionMiddleware)
+//app.use(authenticationMiddleware) asks for username and password 
 // custom middleware to run on all request
+app.use('/reimbursements', reimRouter)
+app.use('/users', userRouter)
 
-app.use(loggingMiddleware)
-
-//session middleware to track connections to our server
-app.use(sessionMiddleware)
-
-app.use('/reimbursement', reimRouter)  // redirect all request on /reimbursement to the reimRouter
-app.use('/users', userRouter) // middleware to direct all requests on /users to the router
-
-app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
+/*
+app.post('/login', (req:Request, res:Response)=>{
     let username = req.body.username
     let password = req.body.password
     if(!username || !password){
-        throw new InvalidCredentialsError()
-    } else {
-        try {
-            let user = await getUserByUsernameAndPassword(username, password)
-            req.session.user = user //  add user data to the session so, we can use that data in other requests
-            res.json(user)
-        }catch (e){
-            next(e)
+        res.status(401).send('Please enter a valid usurname and password')
+    }else{
+        for(const user of users){
+            if(user.username === username && user.password ===password){
+                req.session.user = user   // adding the user to that session/so they can perform action as a specific user
+                res.json(user)
+            }else {
+                throw new AuthFailureError()
+            }
         }
-    }  
+    }
 })
 
+*/
+
+
+
+
 app.use((err, req, res, next) =>{
-    if(err.statusCode) {
+    if(err.statusCode){
         res.status(err.statusCode).send(err.message)
     }else {
         console.log(err)
-        res.status(500).send("Oops Something went wrong")
+        res.status(500).send("Oppps something went wrong")
     }
-});
+})
 
 app.listen(2006, ()=>{
     console.log('Server has started');
