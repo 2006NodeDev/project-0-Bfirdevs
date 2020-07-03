@@ -11,7 +11,7 @@ export function ReimDTOtoReimbursementConvertor(rdto:ReimbursementsDTO) : Reimbu
         description: rdto.description,
         resolver: rdto.resolver,
         status: rdto.status,
-        type: rdto.status
+        type: rdto.type
     }
 
 }

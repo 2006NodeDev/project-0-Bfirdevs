@@ -1,6 +1,7 @@
 import { PoolClient, QueryResult } from "pg";
 import { connectionPool } from ".";
 import { UsersDTOtoUsersConvertor } from "../utils/UsersDTOConvertors";
+import { UserNotFound } from "../errors/UserNotFoundError";
 
 
 
@@ -37,8 +38,15 @@ export async function findUserById(user_id:number){
         r."role" , r.role_id
         from employee_data.users u  left join employee_data.roles r on u."role" = r.role_id 
         where u.user_id = ${user_id};`)
-        return getUserById.rows.map(UsersDTOtoUsersConvertor)
+        if(getUserById.rowCount === 0){
+            throw new Error('User not found')
+        }else{
+            return getUserById.rows.map(UsersDTOtoUsersConvertor)
+        }
     } catch (error) {
+        if(error.message === 'User not found'){
+            throw new UserNotFound();
+        }
         console.error();
         throw new Error('un implemented error')
     }finally{

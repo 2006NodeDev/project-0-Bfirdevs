@@ -2,6 +2,8 @@
 import { PoolClient, QueryResult } from "pg";
 import { connectionPool } from ".";
 import { ReimDTOtoReimbursementConvertor } from "../utils/ReimbursementDTOConvertor";
+import { ReimbursementNotFound } from "../errors/ReimbursementNotFoundErrors";
+
 
 
 
@@ -11,8 +13,14 @@ export async function getAllReimbursements(){
     let client: PoolClient;
     try {
         client = await connectionPool.connect()
-        let getAllReimResults:QueryResult = await client.query(`select * from employee_data.reimbursements;`)
-        return getAllReimResults.rows.map(ReimDTOtoReimbursementConvertor)
+        let getAllReimResults:QueryResult = await client.query(`select * from employee_data.reimbursements r
+        order by r.date_submitted;`)
+        if(getAllReimResults.rowCount ===0){
+            throw new ReimbursementNotFound();
+        }else{
+            return getAllReimResults.rows.map(ReimDTOtoReimbursementConvertor)
+        }
+        
     } catch (error) {
         console.error();
         throw new Error('un implemented error')
@@ -42,11 +50,18 @@ export async function findReimbursementByStatusId(status_id:number){
         left join employee_data.reimbursement_status rs on r.status = rs.status_id
         left join employee_data.users u1 on r.author = u1.user_id
         left join employee_data.users u2 on r.resolver = u2.user_id
-        where r.status = ${status_id};`)
-        return reimByStatusIdResult.rows.map(ReimDTOtoReimbursementConvertor)
+        where r.status = ${status_id} order by r.date_submitted;`)
+        if(reimByStatusIdResult.rowCount ===0){
+            throw new Error('Reimbursement Not Found')
+        }else{
+            return reimByStatusIdResult.rows.map(ReimDTOtoReimbursementConvertor)
+        }
     } catch (error) {
-        console.error();
-        throw new Error('un implemented error')
+        if(error.message === 'Reimbursement Not Found'){
+            throw new ReimbursementNotFound();
+        }
+        console.log(error)
+        throw new Error('un implemented error handling')
     }finally{
         //  && guard operator we are making sure that client is exist then we release
         client && client.release()
@@ -73,11 +88,18 @@ export async function findReimbursementByUser(user_id:number){
         left join employee_data.reimbursement_status rs on r.status = rs.status_id
         left join employee_data.users u1 on r.author = u1.user_id
         left join employee_data.users u2 on r.resolver = u2.user_id
-        where r.status = ${user_id};`)
-        return reimByUserIdResult.rows.map(ReimDTOtoReimbursementConvertor)
+        where u1.user_id = ${user_id} order by r.date_submitted;`)
+        if(reimByUserIdResult.rowCount ===0){
+            throw new Error('Reimbursement Not Found')
+        }else{
+            return reimByUserIdResult.rows.map(ReimDTOtoReimbursementConvertor)
+        }
     } catch (error) {
-        console.error();
-        throw new Error('un implemented error')
+        if(error.message === 'Reimbursement Not Found'){
+            throw new ReimbursementNotFound();
+        }
+        console.log(error)
+        throw new Error('un implemented error handling')
     }finally{
         //  && guard operator we are making sure that client is exist then we release
         client && client.release()
