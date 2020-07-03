@@ -1,6 +1,11 @@
-import  express from 'express';
+import  express, { NextFunction, Request, Response } from 'express';
 import { reimRouter } from './routers/reim-router';
 import { userRouter } from './routers/user-router';
+import { InvalidCredentialsError } from './errors/InvalidCredentialsError';
+import { getUserByusernameAndPassword } from './daos/user-dao';
+import { loggingMiddleware } from './middlewares/logging-middleware';
+import { sessionMiddleware } from './middlewares/session-middlewate';
+
 
 
 
@@ -9,32 +14,33 @@ import { userRouter } from './routers/user-router';
 const app = express();
 
 app.use(express.json())
-//app.use(loggingMiddleware)
-//app.use(sessionMiddleware)
-//app.use(authenticationMiddleware) asks for username and password 
+app.use(loggingMiddleware)
+app.use(sessionMiddleware)
+//app.use(authenticationMiddleware) //asks for username and password 
 // custom middleware to run on all request
 app.use('/reimbursements', reimRouter)
 app.use('/users', userRouter)
 
-/*
-app.post('/login', (req:Request, res:Response)=>{
+
+app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
     let username = req.body.username
     let password = req.body.password
     if(!username || !password){
-        res.status(401).send('Please enter a valid usurname and password')
+        //res.status(401).send('Please enter a valid usurname and password')
+        throw new InvalidCredentialsError();
     }else{
-        for(const user of users){
-            if(user.username === username && user.password ===password){
-                req.session.user = user   // adding the user to that session/so they can perform action as a specific user
-                res.json(user)
-            }else {
-                throw new AuthFailureError()
-            }
+        try {
+            let user = await getUserByusernameAndPassword(username, password)
+            req.session.user = user // adding user data to the session
+            //so we can use that data for other requests 
+            res.json(user)
+        } catch (error) {
+            next(error)
         }
     }
 })
 
-*/
+
 
 
 

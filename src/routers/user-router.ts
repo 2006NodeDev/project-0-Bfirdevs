@@ -1,33 +1,33 @@
 import express, { Request, Response, NextFunction } from 'express'
 
 import { getAllUsers, findUserById } from '../daos/user-dao';
+import { authenticationMiddleware } from '../middlewares/authentication-middleware';
+import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
 
 
 export let userRouter = express.Router();
 
 
 
-//userRouter.use(authenticationMiddleware)
+userRouter.use(authenticationMiddleware)
 
 // get all authorizationMiddleWare(['Admin']
-userRouter.get('/', async (req:Request, res:Response, next:NextFunction)=>{
+userRouter.get('/', authorizationMiddleWare(['Admin', 'Finance Manager']), async (req:Request, res:Response, next:NextFunction)=>{
     try {
-        let users = await getAllUsers()
-        res.json(users)
+        let getAllusers = await getAllUsers()
+        res.json(getAllusers)
     } catch (error) {
         next(error)
     }
-  
 })
 
 
 
 
-// get by id
-userRouter.get('/:id', async (req:Request, res:Response, next:NextFunction) =>{
+userRouter.get('/:id', authorizationMiddleWare(['Admin', 'Finance Manager']), async (req:Request, res:Response, next:NextFunction) =>{
     let {id} = req.params
     if(isNaN(+id)){
-        res.status(400).send('Id should be a number')
+        res.status(400).send('Id must be a number')
     }else {
         try {
             let userById = await findUserById(+id)
@@ -38,27 +38,32 @@ userRouter.get('/:id', async (req:Request, res:Response, next:NextFunction) =>{
     }
 })
 
-  
-
 /*
-userRouter.get('/:id', authorizationMiddleware(['admin','finance-manager','Employee']), async (req:Request, res:Response, next:NextFunction) => {
-    let {id} = req.params;
+// Update User 
+userRouter.patch('/', authorizationMiddleWare(['Admin']), async (req:Request, res:Response, next:NextFunction)=>{
+    let id = req.body.user_id
+    console.log(req.body);
+    console.log(id)
     if(isNaN(+id)){
-        next(new UserIdInputError)
-    }
-    else if(req.session.user.role === "user" && req.session.user.userId !== +id){
-        next(new UnauthorizedEndPointError)
-    }
-    else{
-        try{
-            let user = await getUserById(+id)
-            res.json(user)
-        } catch (e){
-            next(e)
+        next(new InvalidIdError)
+    }else {
+        let user: Users = {
+            user_id: req.body.user_id,
+            username: req.body.username,
+            password: req.body.password,
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            email: req.body.email,
+            role: req.body.role
+        }
+        console.log(user)
+        try {
+            let updatedUser = await patchUser(user)
+            res.json(updatedUser)
+        } catch (error) {
+            next(error)
         }
     }
-}
+})
+
 */
-
-
-

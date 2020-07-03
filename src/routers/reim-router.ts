@@ -1,13 +1,17 @@
 import express, {Request, Response, NextFunction} from 'express'
-
-import { getAllReimbursements, findReimbursementByStatusId, findReimbursementByUser } from '../daos/reim-dao';
+import { getAllReimbursements, findReimbursementByStatusId, findReimbursementByUser, submitNewReimbursement } from '../daos/reim-dao';
 import { InvalidIdError } from '../errors/InvalidIdError';
-import { UserMissingInputError } from '../errors/UserMissingInputError';
+import { authenticationMiddleware } from '../middlewares/authentication-middleware';
+import { Reimbursements } from '../models/Reimbursements';
+import { ReimbursementInputError } from '../errors/ReimbursementInputError';
+import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
+
 
 export let reimRouter = express.Router();
 
+reimRouter.use(authenticationMiddleware)
 
-reimRouter.get('/', async (req:Request, res:Response, next:NextFunction)=>{
+reimRouter.get('/', authorizationMiddleWare(['Finance Manager']),async (req:Request, res:Response, next:NextFunction)=>{
     try {
         let reimburs = await getAllReimbursements()
         res.json(reimburs)
@@ -48,24 +52,37 @@ reimRouter.get('/author/userId/:user_id', async(req:Request, res:Response, next:
     }
 })
 
- reimRouter.post('/', (req:Request, res:Response)=>{
-    console.log(req.body);
+
+ reimRouter.post('/', async (req:Request, res:Response, next:NextFunction)=>{
+    
     let{
-        reimbursement_id,
-        author,
         amount,
-        date_submitted,
-        date_resolved,
         description,
-        resolver,
-        status,
         type
     } = req.body
-    if(reimbursement_id && author && amount && date_submitted && date_resolved && description && resolver && status && type){
-     //   reimbursements.push(reimbursement_id, author, amount, date_submitted, date_resolved, description, resolver, status, type)
-        res.sendStatus(201)
+    
+    let author = req.session.user.userId;
+
+    if( !author || !amount || !description  || !type){
+        next(new ReimbursementInputError())
     }else{
-        throw new UserMissingInputError();
+        let newReimbursement: Reimbursements ={
+            reimbursement_id: 0,
+            author,
+            amount,
+            date_submitted: new Date(),
+            date_resolved: null ,
+            description,
+            resolver:null,
+            status:3,
+            type,
+        }
+        try {
+            let submitReim = await submitNewReimbursement(newReimbursement)
+            res.json(submitReim)
+        } catch (error) {
+            next(error)
+        }  
     }
     
 })

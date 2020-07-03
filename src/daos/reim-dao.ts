@@ -3,6 +3,8 @@ import { PoolClient, QueryResult } from "pg";
 import { connectionPool } from ".";
 import { ReimDTOtoReimbursementConvertor } from "../utils/ReimbursementDTOConvertor";
 import { ReimbursementNotFound } from "../errors/ReimbursementNotFoundErrors";
+import { Reimbursements } from "../models/Reimbursements";
+import { ReimbursementInputError } from "../errors/ReimbursementInputError";
 
 
 
@@ -30,7 +32,7 @@ export async function getAllReimbursements(){
     }
 }
 
-export async function findReimbursementByStatusId(status_id:number){
+export async function findReimbursementByStatusId(statusId:number){
     let client : PoolClient
     try {
         client = await connectionPool.connect()
@@ -50,7 +52,7 @@ export async function findReimbursementByStatusId(status_id:number){
         left join employee_data.reimbursement_status rs on r.status = rs.status_id
         left join employee_data.users u1 on r.author = u1.user_id
         left join employee_data.users u2 on r.resolver = u2.user_id
-        where r.status = ${status_id} order by r.date_submitted;`)
+        where r.status = $1 order by r.date_submitted;`, [statusId])
         if(reimByStatusIdResult.rowCount ===0){
             throw new Error('Reimbursement Not Found')
         }else{
@@ -68,7 +70,7 @@ export async function findReimbursementByStatusId(status_id:number){
     }
 }
 
-export async function findReimbursementByUser(user_id:number){
+export async function findReimbursementByUser(userId:number){
     let client : PoolClient
     try {
         client = await connectionPool.connect()
@@ -88,7 +90,7 @@ export async function findReimbursementByUser(user_id:number){
         left join employee_data.reimbursement_status rs on r.status = rs.status_id
         left join employee_data.users u1 on r.author = u1.user_id
         left join employee_data.users u2 on r.resolver = u2.user_id
-        where u1.user_id = ${user_id} order by r.date_submitted;`)
+        where u1.user_id = $1 order by r.date_submitted;`, [userId])
         if(reimByUserIdResult.rowCount ===0){
             throw new Error('Reimbursement Not Found')
         }else{
@@ -103,5 +105,35 @@ export async function findReimbursementByUser(user_id:number){
     }finally{
         //  && guard operator we are making sure that client is exist then we release
         client && client.release()
+    }
+}
+
+export async function submitNewReimbursement(newReimbursement: Reimbursements):Promise<Reimbursements>{
+    let client: PoolClient
+    try {
+        client = await connectionPool.connect()
+        await client.query('BEGIN;')
+        let typeId = await client.query(`select rt.type_id from employee_data.reimbursement_type rt where rt."type" = $1;`, [newReimbursement.type])
+        if(typeId.rowCount === 0){
+            throw new Error('Type not found')
+        }else {
+            typeId = typeId.rows[0].type_id
+        }
+        
+        let results = client.query(`insert into employee_data.reimbursements("author", "amount", "date_submitted", "date_resolved", "description", "resolver", "status", "type") values ($1, $2, $3, $4, $5, $6, $7, $8) returning reimbursement_id`,
+        [newReimbursement.author, newReimbursement.amount, newReimbursement.date_submitted, newReimbursement.date_resolved, newReimbursement.description, newReimbursement.resolver, newReimbursement.status, typeId ])
+       
+        newReimbursement.reimbursement_id = (await results).rows[0].reimbursement_id
+        await client.query('COMMIT;')
+        return newReimbursement
+    } catch (error) {
+        client && client.query('ROLLBACK;')
+        if(error.message === 'Type not found'){
+            throw new ReimbursementInputError();
+        }
+        console.log(error)
+        throw new Error('un implemented error handling')
+    }finally{
+        client && client.release();
     }
 }
