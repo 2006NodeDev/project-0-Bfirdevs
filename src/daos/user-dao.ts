@@ -87,4 +87,45 @@ export async function getUserByusernameAndPassword(username, password):Promise<U
 }
 
 
+export async function UpdateOnExistingUser(updatedUser:Users):Promise<Users>{
+    let client : PoolClient
+    try {
+        client = await connectionPool.connect()
+        await client.query('BEGIN;')
+        if(updatedUser.username){
+            await client.query('update employee_data.users set username = $1 where user_id = $2;', [updatedUser.username, updatedUser.user_id])
+        }
+        if(updatedUser.password){
+            await client.query('update employee_data.users set password = $1 where user_id = $2;', [updatedUser.password, updatedUser.user_id])
+        }
+        if(updatedUser.first_name){
+            await client.query('update employee_data.users set first_name = $1 where user_id = $2;', [updatedUser.first_name, updatedUser.user_id])
+        }
+        if(updatedUser.last_name){
+            await client.query('update employee_data.users set last_name= $1 where user_id = $2;', [updatedUser.last_name, updatedUser.user_id])
+        }
+        if(updatedUser.email){
+            await client.query('update employee_data.users set email = $1 where user_id = $2;', [updatedUser.email , updatedUser.user_id])
+        }
+        if(updatedUser.role ){
+          let role_id =   await client.query('select r.role_id from employee_data.roles r  where r.role = $1;', [updatedUser.role])
+          if(role_id.rowCount === 0){
+              throw new Error ('Role not found')
+          }
+          role_id = role_id.rows[0].role_id
+          await client.query('update employee_data.users set "role"= $1 where user_id = $2;', [role_id, updatedUser.user_id])
+        }
+        await client.query('COMMIT;') 
+        return findUserById(updatedUser.user_id)
 
+    } catch (error) {
+        client && client.query('ROLLBACK;') // if any error occurs send it back
+        if(error.message === 'Role not found'){
+            throw new Error('Role not found')
+        }
+        console.log(error);
+        throw new Error ('Unhandled Error')
+    }finally{
+        client && client.release();
+    }
+}

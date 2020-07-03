@@ -1,8 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express'
-
-import { getAllUsers, findUserById } from '../daos/user-dao';
+import { getAllUsers, findUserById, UpdateOnExistingUser } from '../daos/user-dao';
 import { authenticationMiddleware } from '../middlewares/authentication-middleware';
 import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
+import { Users } from '../models/Users';
+import { InvalidIdError } from '../errors/InvalidIdError';
 
 
 export let userRouter = express.Router();
@@ -38,32 +39,43 @@ userRouter.get('/:id', authorizationMiddleWare(['Admin', 'Finance Manager']), as
     }
 })
 
-/*
-// Update User 
+
 userRouter.patch('/', authorizationMiddleWare(['Admin']), async (req:Request, res:Response, next:NextFunction)=>{
-    let id = req.body.user_id
-    console.log(req.body);
-    console.log(id)
-    if(isNaN(+id)){
-        next(new InvalidIdError)
-    }else {
-        let user: Users = {
-            user_id: req.body.user_id,
-            username: req.body.username,
-            password: req.body.password,
-            first_name: req.body.first_name,
-            last_name: req.body.last_name,
-            email: req.body.email,
-            role: req.body.role
+    
+        let{
+        user_id,
+        username,
+        password,
+        first_name,
+        last_name,
+        email,
+        role
+        } = req.body
+        if(!user_id || isNaN(req.body.user_id)){
+            next(new InvalidIdError())
+        }else {
+        let updatedUser: Users = {
+            user_id,
+            username, 
+            password, 
+            first_name,
+            last_name,
+            email,
+            role
         }
-        console.log(user)
+        updatedUser.username= username ||undefined
+        updatedUser.password = password || undefined
+        updatedUser.first_name = first_name || undefined
+        updatedUser.last_name = last_name || undefined
+        updatedUser.email = email || undefined
+        updatedUser.role = role || undefined
+
+        console.log(updatedUser)
         try {
-            let updatedUser = await patchUser(user)
-            res.json(updatedUser)
+            let updateResults = await UpdateOnExistingUser(updatedUser)
+            res.json(updateResults)
         } catch (error) {
             next(error)
         }
     }
 })
-
-*/

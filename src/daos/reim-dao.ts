@@ -11,7 +11,7 @@ import { ReimbursementInputError } from "../errors/ReimbursementInputError";
 
 
 //Promise is representation of a future value of an error
-export async function getAllReimbursements(){
+export async function getAllReimbursements():Promise<Reimbursements[]>{
     let client: PoolClient;
     try {
         client = await connectionPool.connect()
@@ -32,7 +32,7 @@ export async function getAllReimbursements(){
     }
 }
 
-export async function findReimbursementByStatusId(statusId:number){
+export async function findReimbursementByStatusId(statusId:number):Promise<Reimbursements>{
     let client : PoolClient
     try {
         client = await connectionPool.connect()
@@ -56,7 +56,7 @@ export async function findReimbursementByStatusId(statusId:number){
         if(reimByStatusIdResult.rowCount ===0){
             throw new Error('Reimbursement Not Found')
         }else{
-            return reimByStatusIdResult.rows.map(ReimDTOtoReimbursementConvertor)
+            return ReimDTOtoReimbursementConvertor(reimByStatusIdResult.rows[0])
         }
     } catch (error) {
         if(error.message === 'Reimbursement Not Found'){
@@ -70,7 +70,7 @@ export async function findReimbursementByStatusId(statusId:number){
     }
 }
 
-export async function findReimbursementByUser(userId:number){
+export async function findReimbursementByUser(userId:number):Promise<Reimbursements>{
     let client : PoolClient
     try {
         client = await connectionPool.connect()
@@ -94,7 +94,7 @@ export async function findReimbursementByUser(userId:number){
         if(reimByUserIdResult.rowCount ===0){
             throw new Error('Reimbursement Not Found')
         }else{
-            return reimByUserIdResult.rows.map(ReimDTOtoReimbursementConvertor)
+            return ReimDTOtoReimbursementConvertor(reimByUserIdResult.rows[0])
         }
     } catch (error) {
         if(error.message === 'Reimbursement Not Found'){
