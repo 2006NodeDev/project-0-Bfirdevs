@@ -60,8 +60,9 @@ reimRouter.get('/author/userId/:user_id', async(req:Request, res:Response, next:
         description,
         type
     } = req.body
-    
-    let author = req.session.user.userId;
+
+    let author = req.session.user.user_id;
+    console.log(author)
 
     if( !author || !amount || !description  || !type){
         next(new ReimbursementInputError())
