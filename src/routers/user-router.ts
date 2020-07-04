@@ -12,8 +12,8 @@ export let userRouter = express.Router();
 
 userRouter.use(authenticationMiddleware)
 
-// get all authorizationMiddleWare(['Admin']
-userRouter.get('/', authorizationMiddleWare(['Admin', 'Finance Manager']), async (req:Request, res:Response, next:NextFunction)=>{
+
+userRouter.get('/', authorizationMiddleWare(['Finance Manager', 'Admin']), async (req:Request, res:Response, next:NextFunction)=>{
     try {
         let getAllusers = await getAllUsers()
         res.json(getAllusers)
@@ -25,7 +25,7 @@ userRouter.get('/', authorizationMiddleWare(['Admin', 'Finance Manager']), async
 
 
 
-userRouter.get('/:id', authorizationMiddleWare(['Admin', 'Finance Manager']), async (req:Request, res:Response, next:NextFunction) =>{
+userRouter.get('/:id', authorizationMiddleWare(['Finance Manager', 'Admin']), async (req:Request, res:Response, next:NextFunction) =>{
     let {id} = req.params
     if(isNaN(+id)){
         res.status(400).send('Id must be a number')
@@ -39,6 +39,7 @@ userRouter.get('/:id', authorizationMiddleWare(['Admin', 'Finance Manager']), as
     }
 })
 
+// Update User / Allowed Admin
 
 userRouter.patch('/', authorizationMiddleWare(['Admin']), async (req:Request, res:Response, next:NextFunction)=>{
     
@@ -79,3 +80,5 @@ userRouter.patch('/', authorizationMiddleWare(['Admin']), async (req:Request, re
         }
     }
 })
+
+

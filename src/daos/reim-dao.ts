@@ -137,3 +137,87 @@ export async function submitNewReimbursement(newReimbursement: Reimbursements):P
         client && client.release();
     }
 }
+
+// Update Reimbursement
+export async function updateExistingReimbursement(updateReim:Reimbursements): Promise <Reimbursements> {
+    let client: PoolClient
+    try {
+        client = await connectionPool.connect()
+        await client.query('BEGIN;')
+        if(updateReim.amount){
+            await client.query(`update employee_data.reimbursements  set "amount" = $1 where "reimbursement_id" = $2;`, [updateReim.amount, updateReim.reimbursement_id])
+        }
+        if(updateReim.date_resolved){
+            await client.query(`update employee_data.reimbursements  set "date_resolved" = $1 where "reimbursement_id" = $2;`, [updateReim.date_resolved, updateReim.reimbursement_id])
+        }
+        if(updateReim.description){
+            await client.query(`update employee_data.reimbursements  set "description" = $1 where "reimbursement_id" = $2;`, [updateReim.description, updateReim.reimbursement_id])
+        }
+        if(updateReim.resolver){
+            await client.query(`update employee_data.reimbursements  set "resolver" = $1 where "reimbursement_id" = $2;`, [updateReim.resolver, updateReim.reimbursement_id])
+        }
+        if(updateReim.status){
+           let status_id =  await client.query(`select rs."status_id" from employee_data.reimbursement_status rs  where rs."status" = $1;`, [updateReim.status])
+            if(status_id.rowCount === 0){
+                throw new Error('Status Not Found')
+            }
+
+            status_id= status_id.rows[0].status_id
+            await client.query(`update employee_data.reimbursements  set "status" = $1 where reimbursement_id = $2;` , [status_id, updateReim.reimbursement_id])
+        }
+        if(updateReim.type){
+            let type_id = await client.query(`select rt."type_id" from employee_data.reimbursement_type rt where rt."type" = $1;` , [updateReim.type])
+            if(type_id.rowCount === 0 ){
+                throw new Error("Type Not Found")
+            }
+            type_id= type_id.rows[0].type_id
+            await client.query('update employee_data.reimbursements  set "type"= $1 where reimbursement_id = $2;' , [type_id, updateReim.reimbursement_id])
+        }
+        
+        
+        await client.query('COMMIT;') 
+        return findReimbursementById(updateReim.reimbursement_id)
+        
+    } catch (error) {
+        client && client.query('ROLLBACK;')
+        if(error.message === 'Status Not Found'){
+            throw new Error ('Status Not Found')
+        }else if(error.message === 'Type Not Found'){
+            throw new Error ('Type Not Found')
+        }else if(error.message ===  'Invalid ID'){
+            throw new Error ('Invalid ID')
+        }
+        console.log(error);
+        throw new Error('Unhandled Error')
+    }finally {
+        client && client.release()
+    }
+}
+
+export async function findReimbursementById(id:number):Promise<Reimbursements>{
+    let client: PoolClient;
+    try {
+        client = await connectionPool.connect()
+        let getReimbursmentById:QueryResult = await client.query(`select * from employee_data.reimbursements r 
+        left join employee_data.users u on r.author = u.user_id 
+        left join employee_data.reimbursement_status rs  on r.status = rs.status_id 
+        left join employee_data.reimbursement_type rt on rt.type_id = r."type"  
+        where r.reimbursement_id = $1 order by r.date_submitted;`, [id])
+        
+        if(getReimbursmentById.rowCount === 0){
+            throw new Error('Reimbursement not found')
+        }else{
+            // because there will be one object
+            return ReimDTOtoReimbursementConvertor(getReimbursmentById.rows[0])
+        }
+    } catch (error) {
+        if(error.message === 'Reimbursement not found'){
+            throw new ReimbursementNotFound()
+        }
+        console.error();
+        throw new Error('un implemented error')
+    }finally{
+        //  && guard operator we are making sure that client is exist then we release
+        client && client.release()
+    }
+}

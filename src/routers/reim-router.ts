@@ -1,5 +1,5 @@
 import express, {Request, Response, NextFunction} from 'express'
-import { getAllReimbursements, findReimbursementByStatusId, findReimbursementByUser, submitNewReimbursement } from '../daos/reim-dao';
+import { getAllReimbursements, findReimbursementByStatusId, findReimbursementByUser, submitNewReimbursement, updateExistingReimbursement } from '../daos/reim-dao';
 import { InvalidIdError } from '../errors/InvalidIdError';
 import { authenticationMiddleware } from '../middlewares/authentication-middleware';
 import { Reimbursements } from '../models/Reimbursements';
@@ -22,7 +22,7 @@ reimRouter.get('/', authorizationMiddleWare(['Finance Manager']),async (req:Requ
 })
 
 
-reimRouter.get('/status/:status_id', async(req:Request, res:Response, next:NextFunction)=>{
+reimRouter.get('/status/:status_id', authorizationMiddleWare(['Finance Manager']), async(req:Request, res:Response, next:NextFunction)=>{
     let {status_id} = req.params
     if(isNaN(+status_id)){
         throw new InvalidIdError()
@@ -37,7 +37,7 @@ reimRouter.get('/status/:status_id', async(req:Request, res:Response, next:NextF
     }
 })
 
-reimRouter.get('/author/userId/:user_id', async(req:Request, res:Response, next:NextFunction)=>{
+reimRouter.get('/author/userId/:user_id', authorizationMiddleWare(['Finance Manager']), async(req:Request, res:Response, next:NextFunction)=>{
     let {user_id} = req.params
     if(isNaN(+user_id)){
         throw new InvalidIdError()
@@ -52,6 +52,7 @@ reimRouter.get('/author/userId/:user_id', async(req:Request, res:Response, next:
     }
 })
 
+// Submit a reimbursment
 
  reimRouter.post('/', async (req:Request, res:Response, next:NextFunction)=>{
     
@@ -88,4 +89,70 @@ reimRouter.get('/author/userId/:user_id', async(req:Request, res:Response, next:
     
 })
 
+// Update Reimbursement patch 
+
+reimRouter.patch('/', authorizationMiddleWare(['Finance Manager']), async (req:Request, res:Response, next:NextFunction)=>{
+    let{
+        reimbursement_id,
+        author,
+        amount,
+        description,
+        status,
+        type
+    } = req.body
+
+    if(!reimbursement_id || isNaN(reimbursement_id)){
+        next (new InvalidIdError());
+    }
+    if(status === 'Approved' || status === "Denied"){
+        let updatedReimbursement:Reimbursements ={
+            reimbursement_id,
+            author,
+            amount,
+            date_submitted: undefined,
+            date_resolved: new Date(),
+            description,
+            resolver: req.session.user.user_id,
+            status,
+            type
+        }
+        updatedReimbursement.author = author || undefined
+        updatedReimbursement.amount = amount || undefined
+        updatedReimbursement.description = description || undefined
+        updatedReimbursement.status = status || undefined
+        updatedReimbursement.type = type || undefined
+
+        try {
+            let updatedReimResults = await updateExistingReimbursement(updatedReimbursement)
+            res.json(updatedReimResults)
+        } catch (error) {
+            next(error)
+        }
+    } else {
+        let updatedReimbursement:Reimbursements ={
+            reimbursement_id,
+            author,
+            amount,
+            date_submitted: undefined,
+            date_resolved: null,
+            description,
+            resolver: null,
+            status,
+            type
+        }
+        updatedReimbursement.author = author || undefined
+        updatedReimbursement.amount = amount || undefined
+        updatedReimbursement.description = description || undefined
+        updatedReimbursement.status = status || undefined
+        updatedReimbursement.type = type || undefined
+        
+        try {
+            let updatedReimResults = await updateExistingReimbursement(updatedReimbursement)
+            res.json(updatedReimResults)
+        } catch (error) {
+            next(error)
+        }
+    }
+    
+})
 
