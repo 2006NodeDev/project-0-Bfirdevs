@@ -5,6 +5,7 @@ import { authenticationMiddleware } from '../middlewares/authentication-middlewa
 import { Reimbursements } from '../models/Reimbursements';
 import { ReimbursementInputError } from '../errors/ReimbursementInputError';
 import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
+import { AuthenticationFailure } from '../errors/AuthenticationFailure';
 
 
 export let reimRouter = express.Router();
@@ -26,21 +27,26 @@ reimRouter.get('/status/:status_id', authorizationMiddleWare(['Finance Manager']
     let {status_id} = req.params
     if(isNaN(+status_id)){
         throw new InvalidIdError()
-    }else {
+    }else{
+
        try {
             let reimByStatusId = await findReimbursementByStatusId(+status_id)
             res.json(reimByStatusId)
        } catch (error) {
            next(error)
        }
-        
-    }
+    } 
+    
 })
 
-reimRouter.get('/author/userId/:user_id', authorizationMiddleWare(['Finance Manager']), async(req:Request, res:Response, next:NextFunction)=>{
+reimRouter.get('/author/userId/:user_id', authorizationMiddleWare(['Finance Manager', 'Employee']), async(req:Request, res:Response, next:NextFunction)=>{
     let {user_id} = req.params
+
     if(isNaN(+user_id)){
         throw new InvalidIdError()
+
+    } else if(req.session.user.user_id !== +user_id && req.session.user.role === "Employee"){
+        next(new AuthenticationFailure())
     }else {
        try {
             let reimByUserId = await findReimbursementByUser(+user_id)
@@ -48,7 +54,6 @@ reimRouter.get('/author/userId/:user_id', authorizationMiddleWare(['Finance Mana
        } catch (error) {
            next(error)
        }
-        
     }
 })
 
@@ -104,23 +109,23 @@ reimRouter.patch('/', authorizationMiddleWare(['Finance Manager']), async (req:R
     if(!reimbursement_id || isNaN(reimbursement_id)){
         next (new InvalidIdError());
     }
-    if(status === 'Approved' || status === "Denied"){
+    
         let updatedReimbursement:Reimbursements ={
             reimbursement_id,
             author,
             amount,
-            date_submitted: undefined,
+            date_submitted: new Date(),
             date_resolved: new Date(),
             description,
             resolver: req.session.user.user_id,
             status,
             type
         }
-        updatedReimbursement.author = author || undefined
-        updatedReimbursement.amount = amount || undefined
-        updatedReimbursement.description = description || undefined
-        updatedReimbursement.status = status || undefined
-        updatedReimbursement.type = type || undefined
+        updatedReimbursement.author = author 
+        updatedReimbursement.amount = amount 
+        updatedReimbursement.description = description 
+        updatedReimbursement.status = status 
+        updatedReimbursement.type = type 
 
         try {
             let updatedReimResults = await updateExistingReimbursement(updatedReimbursement)
@@ -128,31 +133,5 @@ reimRouter.patch('/', authorizationMiddleWare(['Finance Manager']), async (req:R
         } catch (error) {
             next(error)
         }
-    } else {
-        let updatedReimbursement:Reimbursements ={
-            reimbursement_id,
-            author,
-            amount,
-            date_submitted: undefined,
-            date_resolved: null,
-            description,
-            resolver: null,
-            status,
-            type
-        }
-        updatedReimbursement.author = author || undefined
-        updatedReimbursement.amount = amount || undefined
-        updatedReimbursement.description = description || undefined
-        updatedReimbursement.status = status || undefined
-        updatedReimbursement.type = type || undefined
-        
-        try {
-            let updatedReimResults = await updateExistingReimbursement(updatedReimbursement)
-            res.json(updatedReimResults)
-        } catch (error) {
-            next(error)
-        }
-    }
-    
-})
+ })
 

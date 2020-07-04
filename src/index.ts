@@ -7,10 +7,6 @@ import { loggingMiddleware } from './middlewares/logging-middleware';
 import { sessionMiddleware } from './middlewares/session-middlewate';
 
 
-
-
-
-
 const app = express();
 
 app.use(express.json())
@@ -39,10 +35,6 @@ app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
         }
     }
 })
-
-
-
-
 
 
 app.use((err, req, res, next) =>{

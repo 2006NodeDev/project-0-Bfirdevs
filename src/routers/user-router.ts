@@ -4,6 +4,7 @@ import { authenticationMiddleware } from '../middlewares/authentication-middlewa
 import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
 import { Users } from '../models/Users';
 import { InvalidIdError } from '../errors/InvalidIdError';
+import { AuthenticationFailure } from '../errors/AuthenticationFailure';
 
 
 export let userRouter = express.Router();
@@ -13,7 +14,7 @@ export let userRouter = express.Router();
 userRouter.use(authenticationMiddleware)
 
 
-userRouter.get('/', authorizationMiddleWare(['Finance Manager', 'Admin']), async (req:Request, res:Response, next:NextFunction)=>{
+userRouter.get('/', authorizationMiddleWare(['Finance Manager']), async (req:Request, res:Response, next:NextFunction)=>{
     try {
         let getAllusers = await getAllUsers()
         res.json(getAllusers)
@@ -25,11 +26,14 @@ userRouter.get('/', authorizationMiddleWare(['Finance Manager', 'Admin']), async
 
 
 
-userRouter.get('/:id', authorizationMiddleWare(['Finance Manager', 'Admin']), async (req:Request, res:Response, next:NextFunction) =>{
+userRouter.get('/:id', authorizationMiddleWare(['Finance Manager', 'Employee']), async (req:Request, res:Response, next:NextFunction) =>{
     let {id} = req.params
     if(isNaN(+id)){
         res.status(400).send('Id must be a number')
-    }else {
+    }else if(req.session.user.user_id !== +id && req.session.user.role === "Employee"){
+        next(new AuthenticationFailure())
+    }
+    else {
         try {
             let userById = await findUserById(+id)
             res.json(userById)
