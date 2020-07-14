@@ -2,16 +2,23 @@ import  express, { NextFunction, Request, Response } from 'express';
 import { reimRouter } from './routers/reim-router';
 import { userRouter } from './routers/user-router';
 import { InvalidCredentialsError } from './errors/InvalidCredentialsError';
-import { getUserByusernameAndPassword } from './daos/user-dao';
+import { getUserByusernameAndPassword, submitNewUser } from './daos/user-dao';
 import { loggingMiddleware } from './middlewares/logging-middleware';
 import { sessionMiddleware } from './middlewares/session-middlewate';
+import { corsFilter } from './middlewares/cors-filter';
+import { UserMissingInputError } from './errors/UserMissingInputError';
+//import { UserMissingInputError } from './errors/UserMissingInputError';
+//import { Users } from './models/Users';
 
 
 const app = express();
 
 app.use(express.json())
 app.use(loggingMiddleware)
+app.use(corsFilter)
+
 app.use(sessionMiddleware)
+
 //app.use(authenticationMiddleware) //asks for username and password 
 // custom middleware to run on all request
 app.use('/reimbursements', reimRouter)
@@ -23,7 +30,7 @@ app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
     let password = req.body.password
     if(!username || !password){
         //res.status(401).send('Please enter a valid usurname and password')
-        throw new InvalidCredentialsError();
+        next (new InvalidCredentialsError())
     }else{
         try {
             let user = await getUserByusernameAndPassword(username, password)
@@ -35,6 +42,41 @@ app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
         }
     }
 })
+
+
+userRouter.post('/', async (req:Request, res:Response , next: NextFunction)=>{
+    let {
+       // user_id,
+        username,
+        password,
+        first_name,
+        last_name,
+        email,
+        role
+    } = req.body 
+    if (! username || !password || !first_name || !last_name || !email || !role){
+        next(UserMissingInputError)
+    }else {
+        let newUser: Users = {
+            user_id :0, 
+            username,
+            password,
+            first_name,
+            last_name,
+            email,
+            role
+        }
+        try {
+            let submitReim = await submitNewUser(newUser)
+            res.json(submitReim)
+        } catch (error) {
+            next(error)
+        }
+    }
+})
+
+
+
 
 
 app.use((err, req, res, next) =>{

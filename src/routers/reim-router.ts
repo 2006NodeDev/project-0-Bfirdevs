@@ -39,13 +39,13 @@ reimRouter.get('/status/:status_id', authorizationMiddleWare(['Finance Manager']
     
 })
 
-reimRouter.get('/author/userId/:user_id', authorizationMiddleWare(['Finance Manager', 'Employee']), async(req:Request, res:Response, next:NextFunction)=>{
+reimRouter.get('/author/userId/:user_id', authorizationMiddleWare(['Finance Manager', 'User']), async(req:Request, res:Response, next:NextFunction)=>{
     let {user_id} = req.params
 
     if(isNaN(+user_id)){
         throw new InvalidIdError()
 
-    } else if(req.session.user.user_id !== +user_id && req.session.user.role === "Employee"){
+    } else if(req.session.user.user_id !== +user_id && req.session.user.role === "User"){
         next(new AuthenticationFailure())
     }else {
        try {

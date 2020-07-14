@@ -7,6 +7,7 @@ import { InvalidIdError } from '../errors/InvalidIdError';
 import { AuthenticationFailure } from '../errors/AuthenticationFailure';
 
 
+
 export let userRouter = express.Router();
 
 
@@ -14,7 +15,7 @@ export let userRouter = express.Router();
 userRouter.use(authenticationMiddleware)
 
 
-userRouter.get('/', authorizationMiddleWare(['Finance Manager']), async (req:Request, res:Response, next:NextFunction)=>{
+userRouter.get('/', authorizationMiddleWare(['Finance Manager', 'Admin']), async (req:Request, res:Response, next:NextFunction)=>{
     try {
         let getAllusers = await getAllUsers()
         res.json(getAllusers)
@@ -26,11 +27,11 @@ userRouter.get('/', authorizationMiddleWare(['Finance Manager']), async (req:Req
 
 
 
-userRouter.get('/:id', authorizationMiddleWare(['Finance Manager', 'Employee']), async (req:Request, res:Response, next:NextFunction) =>{
+userRouter.get('/:id', authorizationMiddleWare(['Finance Manager', 'Admin' ,'User']), async (req:Request, res:Response, next:NextFunction) =>{
     let {id} = req.params
     if(isNaN(+id)){
         res.status(400).send('Id must be a number')
-    }else if(req.session.user.user_id !== +id && req.session.user.role === "Employee"){
+    }else if(req.session.user.user_id !== +id && req.session.user.role === "User"){
         next(new AuthenticationFailure())
     }
     else {
@@ -43,9 +44,9 @@ userRouter.get('/:id', authorizationMiddleWare(['Finance Manager', 'Employee']),
     }
 })
 
-// Update User / Allowed Admin
+// Update User / Allowed Admin // For Project 1 user can also update his/her own info
 
-userRouter.patch('/', authorizationMiddleWare(['Admin']), async (req:Request, res:Response, next:NextFunction)=>{
+userRouter.patch('/', authorizationMiddleWare(['Admin', 'User']), async (req:Request, res:Response, next:NextFunction)=>{
     
         let{
         user_id,
@@ -56,9 +57,13 @@ userRouter.patch('/', authorizationMiddleWare(['Admin']), async (req:Request, re
         email,
         role
         } = req.body
+
         if(!user_id || isNaN(req.body.user_id)){
             next(new InvalidIdError())
-        }else {
+            
+        }else if(req.session.user.user_id !== +user_id  && req.session.user.role === "User"){
+            next(new AuthenticationFailure())
+        }else { 
         let updatedUser: Users = {
             user_id,
             username, 

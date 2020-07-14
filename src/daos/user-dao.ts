@@ -4,6 +4,7 @@ import { UsersDTOtoUsersConvertor } from "../utils/UsersDTOConvertors";
 import { UserNotFound } from "../errors/UserNotFoundError";
 import { Users } from "../models/Users";
 import { AuthFailureError } from "../errors/AuthFailureError";
+import { UserMissingInputError } from "../errors/UserMissingInputError";
 
 
 
@@ -129,3 +130,40 @@ export async function UpdateOnExistingUser(updatedUser:Users):Promise<Users>{
         client && client.release();
     }
 }
+
+export async function submitNewUser(newUser: Users):Promise<Users>{
+    let client: PoolClient 
+    try {
+        client = await connectionPool.connect()
+        await client.query('BEGIN;')
+
+        let role_id = await client.query(`select r.role_id from employee_data.roles r where r.role_id = $1;`, [newUser.role])
+            if(role_id.rowCount === 0){
+                throw new Error('Role not found')
+            } else {
+                role_id = role_id.rows[0].role_id
+            }
+        let newuserinfo = client.query(`insert into employee_data.users("username", 
+            "password",
+            "first_name",
+            "last_name",
+            "email", "role") values ($1, $2, $3, $4, $5, $6) returning user_id`, 
+            [newUser.username, newUser.password, newUser.first_name, newUser.last_name, newUser.email, role_id])
+            newUser.user_id = (await newuserinfo).rows[0].user_id
+            await client.query('COMMIT;')
+            return newUser
+
+    } catch (error) {
+        client && client.query('ROLLBACK;')
+        if(error.message === 'Role not found') {
+            throw new UserMissingInputError
+        }
+        console.log(error)
+        throw new Error('un implemented error handling')
+    }finally {
+        client && client.release();
+    }
+}
+
+
+            

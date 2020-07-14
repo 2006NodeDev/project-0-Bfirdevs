@@ -10,6 +10,7 @@ import { ReimbursementInputError } from "../errors/ReimbursementInputError";
 
 
 
+
 //Promise is representation of a future value of an error
 export async function getAllReimbursements():Promise<Reimbursements[]>{
     let client: PoolClient;
