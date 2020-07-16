@@ -1,10 +1,10 @@
 
 import { PoolClient, QueryResult } from "pg";
 import { connectionPool } from ".";
-import { ReimDTOtoReimbursementConvertor } from "../utils/ReimbursementDTOConvertor";
-import { ReimbursementNotFound } from "../errors/ReimbursementNotFoundErrors";
-import { Reimbursements } from "../models/Reimbursements";
-import { ReimbursementInputError } from "../errors/ReimbursementInputError";
+import { ReimDTOtoReimbursementConvertor } from "../../utils/ReimbursementDTOConvertor";
+import { ReimbursementNotFound } from "../../errors/ReimbursementNotFoundErrors";
+import { Reimbursements } from "../../models/Reimbursements";
+import { ReimbursementInputError } from "../../errors/ReimbursementInputError";
 
 
 

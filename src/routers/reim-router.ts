@@ -1,5 +1,5 @@
 import express, {Request, Response, NextFunction} from 'express'
-import { getAllReimbursements, findReimbursementByStatusId, findReimbursementByUser, submitNewReimbursement, updateExistingReimbursement } from '../daos/reim-dao';
+import { getAllReimbursements, findReimbursementByStatusId, findReimbursementByUser, submitNewReimbursement, updateExistingReimbursement } from '../daos/SQL/reim-dao';
 import { InvalidIdError } from '../errors/InvalidIdError';
 import { authenticationMiddleware } from '../middlewares/authentication-middleware';
 import { Reimbursements } from '../models/Reimbursements';

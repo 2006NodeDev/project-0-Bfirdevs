@@ -1,10 +1,10 @@
 import { PoolClient, QueryResult } from "pg";
 import { connectionPool } from ".";
-import { UsersDTOtoUsersConvertor } from "../utils/UsersDTOConvertors";
-import { UserNotFound } from "../errors/UserNotFoundError";
-import { Users } from "../models/Users";
-import { AuthFailureError } from "../errors/AuthFailureError";
-import { UserMissingInputError } from "../errors/UserMissingInputError";
+import { UsersDTOtoUsersConvertor } from "../../utils/UsersDTOConvertors";
+import { UserNotFound } from "../../errors/UserNotFoundError";
+import { Users } from "../../models/Users";
+import { AuthFailureError } from "../../errors/AuthFailureError";
+import { UserMissingInputError } from "../../errors/UserMissingInputError";
 
 
 
@@ -16,7 +16,7 @@ export async function getAllUsers():Promise<Users[]>{
         let getAllUsers:QueryResult = await client.query(`select u.user_id, 
         u.username,  
         u."password", u.first_name, 
-        u.last_name, u.email, 
+        u.last_name, u.email, u.image
         r."role" , r.role_id
         from employee_data.users u  left join employee_data.roles r on u."role" = r.role_id;`)
         return getAllUsers.rows.map(UsersDTOtoUsersConvertor)
@@ -37,7 +37,7 @@ export async function findUserById(id:number):Promise<Users>{
         client = await connectionPool.connect()
         let getUserById:QueryResult = await client.query(`select u.username,  
         u."password", u.first_name, 
-        u.last_name, u.email, 
+        u.last_name, u.email, u.image,
         r."role" , r.role_id
         from employee_data.users u  left join employee_data.roles r on u."role" = r.role_id 
         where u.user_id = $1;`, [id])
@@ -65,7 +65,7 @@ export async function getUserByusernameAndPassword(username, password):Promise<U
         client = await connectionPool.connect()
         let getUserById:QueryResult = await client.query(`select u.user_id, u.username,  
         u."password", u.first_name, 
-        u.last_name, u.email, 
+        u.last_name, u.email, u.image,
         r."role" , r.role_id
         from employee_data.users u  left join employee_data.roles r on u."role" = r.role_id 
         where u.username = $1 and u.password = $2;`, [username, password])
@@ -108,6 +108,9 @@ export async function UpdateOnExistingUser(updatedUser:Users):Promise<Users>{
         if(updatedUser.email){
             await client.query('update employee_data.users set email = $1 where user_id = $2;', [updatedUser.email , updatedUser.user_id])
         }
+        if(updatedUser.email){
+            await client.query('update employee_data.users set image = $1 where user_id = $2;', [updatedUser.image , updatedUser.user_id])
+        }
         if(updatedUser.role ){
           let role_id =   await client.query('select r.role_id from employee_data.roles r  where r.role = $1;', [updatedUser.role])
           if(role_id.rowCount === 0){
@@ -147,8 +150,8 @@ export async function submitNewUser(newUser: Users):Promise<Users>{
             "password",
             "first_name",
             "last_name",
-            "email", "role") values ($1, $2, $3, $4, $5, $6) returning user_id`, 
-            [newUser.username, newUser.password, newUser.first_name, newUser.last_name, newUser.email, role_id])
+            "email", "image", "role") values ($1, $2, $3, $4, $5, $6, $7) returning user_id`, 
+            [newUser.username, newUser.password, newUser.first_name, newUser.last_name, newUser.email, newUser.image, role_id])
             newUser.user_id = (await newuserinfo).rows[0].user_id
             await client.query('COMMIT;')
             return newUser

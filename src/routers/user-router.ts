@@ -1,31 +1,25 @@
 import express, { Request, Response, NextFunction } from 'express'
-import { getAllUsers, findUserById, UpdateOnExistingUser } from '../daos/user-dao';
-import { authenticationMiddleware } from '../middlewares/authentication-middleware';
 import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware';
 import { Users } from '../models/Users';
 import { InvalidIdError } from '../errors/InvalidIdError';
 import { AuthenticationFailure } from '../errors/AuthenticationFailure';
+import { authenticationMiddleware } from '../middlewares/authentication-middleware';
+import { getAllUsersService, findUserByIdService, UpdateOnExistingUserService } from '../services/user-service';
 
 
 
 export let userRouter = express.Router();
 
-
-
 userRouter.use(authenticationMiddleware)
-
 
 userRouter.get('/', authorizationMiddleWare(['Finance Manager', 'Admin']), async (req:Request, res:Response, next:NextFunction)=>{
     try {
-        let getAllusers = await getAllUsers()
+        let getAllusers = await getAllUsersService()
         res.json(getAllusers)
     } catch (error) {
         next(error)
     }
 })
-
-
-
 
 userRouter.get('/:id', authorizationMiddleWare(['Finance Manager', 'Admin' ,'User']), async (req:Request, res:Response, next:NextFunction) =>{
     let {id} = req.params
@@ -36,7 +30,7 @@ userRouter.get('/:id', authorizationMiddleWare(['Finance Manager', 'Admin' ,'Use
     }
     else {
         try {
-            let userById = await findUserById(+id)
+            let userById = await findUserByIdService(+id)
             res.json(userById)
         } catch (error) {
             next(error)
@@ -82,7 +76,7 @@ userRouter.patch('/', authorizationMiddleWare(['Admin', 'User']), async (req:Req
 
         console.log(updatedUser)
         try {
-            let updateResults = await UpdateOnExistingUser(updatedUser)
+            let updateResults = await UpdateOnExistingUserService(updatedUser)
             res.json(updateResults)
         } catch (error) {
             next(error)
