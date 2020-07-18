@@ -24,7 +24,9 @@ app.use(sessionMiddleware)
 // custom middleware to run on all request
 app.use('/reimbursements', reimRouter)
 app.use('/users', userRouter)
-
+app.get('health', (req:Request, res:Response)=>{
+    res.sendStatus(200)
+})
 
 app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
     let username = req.body.username
