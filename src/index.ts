@@ -6,6 +6,9 @@ import { getUserByusernameAndPassword } from './daos/SQL/user-dao';
 import { loggingMiddleware } from './middlewares/logging-middleware';
 import { sessionMiddleware } from './middlewares/session-middlewate';
 import { corsFilter } from './middlewares/cors-filter';
+import { UserMissingInputError } from './errors/UserMissingInputError';
+import { Users } from './models/Users';
+import { SubmitNewUserService } from './services/user-service';
 
 const app = express();
 
@@ -40,6 +43,35 @@ app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
         }
     }
 })
+
+app.post('/',  async (req: Request, res: Response, next: NextFunction) => {
+    // get input from the user
+    let { first_name, last_name, username, password, email, role, image } = req.body//a little old fashioned destructuring
+    //verify that input
+    if (!first_name || !last_name || !username || !password || !role) {
+        next(new UserMissingInputError)
+    } else {
+        //try  with a function call to the dao layer to try and save the user
+        let newUser: Users = {
+            first_name,
+            last_name,
+            username,
+            password,
+            role,
+            user_id:0,
+            email,
+            image,
+        }
+        newUser.email = email || null
+        try {
+            let savedUser = await SubmitNewUserService(newUser)
+            res.json(savedUser)// needs to have the updated userId
+        } catch (e) {
+            next(e)
+        }
+    }
+})
+
 
 app.use((err, req, res, next) =>{
     if(err.statusCode){
