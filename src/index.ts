@@ -6,11 +6,6 @@ import { getUserByusernameAndPassword } from './daos/SQL/user-dao';
 import { loggingMiddleware } from './middlewares/logging-middleware';
 import { sessionMiddleware } from './middlewares/session-middlewate';
 import { corsFilter } from './middlewares/cors-filter';
-import { UserMissingInputError } from './errors/UserMissingInputError';
-import { Users } from './models/Users';
-import { SubmitNewUserService } from './services/user-service';
-
-
 
 const app = express();
 
@@ -45,31 +40,6 @@ app.post('/login', async (req:Request, res:Response, next:NextFunction)=>{
         }
     }
 })
-
-userRouter.post('/', async (req:Request, res:Response , next: NextFunction)=>{
-    let {username, password, first_name, last_name, email, role, image } = req.body 
-    if (! username || !password || !first_name || !last_name || !email || !role || !image){
-        next(UserMissingInputError)
-    }else {
-        let newUser: Users = {
-            user_id :0, 
-            username,
-            password,
-            first_name,
-            last_name,
-            email,
-            role,
-            image
-        }
-        try {
-            let submitReim = await SubmitNewUserService(newUser)
-            res.json(submitReim)
-        } catch (error) {
-            next(error)
-        }
-    }
-})
-
 
 app.use((err, req, res, next) =>{
     if(err.statusCode){

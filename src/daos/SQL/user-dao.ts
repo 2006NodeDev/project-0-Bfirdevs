@@ -140,17 +140,18 @@ export async function submitNewUser(newUser: Users):Promise<Users>{
         client = await connectionPool.connect()
         await client.query('BEGIN;')
 
-        let role_id = await client.query(`select r.role_id from employee_data.roles r where r.role_id = $1;`, [newUser.role])
+        let role_id = await client.query(`select r.role_id from employee_data.roles r where r."role" = $1;`, [newUser.role])
             if(role_id.rowCount === 0){
                 throw new Error('Role not found')
-            } else {
-                role_id = role_id.rows[0].role_id
-            }
-        let newuserinfo = client.query(`insert into employee_data.users("username", 
+            } 
+
+            role_id = role_id.rows[0].role_id
+            
+        let newuserinfo = await client.query(`insert into employee_data.users("username", 
             "password",
             "first_name",
             "last_name",
-            "email", "image", "role") values ($1, $2, $3, $4, $5, $6, $7) returning user_id`, 
+            "email", "image", "role") values ($1, $2, $3, $4, $5, $6, $7) returning "user_id" `, 
             [newUser.username, newUser.password, newUser.first_name, newUser.last_name, newUser.email, newUser.image, role_id])
             newUser.user_id = (await newuserinfo).rows[0].user_id
             await client.query('COMMIT;')
