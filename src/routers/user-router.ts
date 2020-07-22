@@ -7,10 +7,6 @@ import { authenticationMiddleware } from '../middlewares/authentication-middlewa
 import { getAllUsersService, findUserByIdService, UpdateOnExistingUserService, } from '../services/user-service';
 
 
-
-
-
-
 export let userRouter = express.Router();
 
 userRouter.use(authenticationMiddleware)
