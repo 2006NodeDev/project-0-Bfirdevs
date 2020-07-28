@@ -16,7 +16,7 @@ export async function getAllUsers():Promise<Users[]>{
         let getAllUsers:QueryResult = await client.query(`select u.user_id, 
         u.username,  
         u."password", u.first_name, 
-        u.last_name, u.email, u.image
+        u.last_name, u.email, u.image,
         r."role" , r.role_id
         from employee_data.users u  left join employee_data.roles r on u."role" = r.role_id;`)
         return getAllUsers.rows.map(UsersDTOtoUsersConvertor)

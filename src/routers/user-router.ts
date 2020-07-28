@@ -3,13 +3,14 @@ import { authorizationMiddleWare } from '../middlewares/authorizationMiddleware'
 import { Users } from '../models/Users';
 import { InvalidIdError } from '../errors/InvalidIdError';
 import { AuthenticationFailure } from '../errors/AuthenticationFailure';
-import { authenticationMiddleware } from '../middlewares/authentication-middleware';
-import { getAllUsersService, findUserByIdService, UpdateOnExistingUserService, } from '../services/user-service';
+//import { authenticationMiddleware } from '../middlewares/authentication-middleware';
+import { getAllUsersService, findUserByIdService, UpdateOnExistingUserService, SubmitNewUserService, } from '../services/user-service';
+import { UserMissingInputError } from '../errors/UserMissingInputError';
 
 
 export let userRouter = express.Router();
 
-userRouter.use(authenticationMiddleware)
+//userRouter.use(authenticationMiddleware)
 
 userRouter.get('/', authorizationMiddleWare(['Finance Manager', 'Admin']), async (req:Request, res:Response, next:NextFunction)=>{
     try {
@@ -85,5 +86,36 @@ userRouter.patch('/', authorizationMiddleWare(['Admin', 'User']), async (req:Req
         }
     }
 })
+
+
+
+userRouter.post('/',  async (req: Request, res: Response, next: NextFunction) => {
+    // get input from the user
+    let { first_name, last_name, username, password, email, role, image } = req.body//a little old fashioned destructuring
+    //verify that input
+    if (!first_name || !last_name || !username || !password || !role) {
+        next(new UserMissingInputError)
+    } else {
+        //try  with a function call to the dao layer to try and save the user
+        let newUser: Users = {
+            first_name,
+            last_name,
+            username,
+            password,
+            role,
+            user_id:0,
+            email,
+            image,
+        }
+        newUser.email = email || null
+        try {
+            let savedUser = await SubmitNewUserService(newUser)
+            res.json(savedUser)// needs to have the updated userId
+        } catch (e) {
+            next(e)
+        }
+    }
+})
+
 
 

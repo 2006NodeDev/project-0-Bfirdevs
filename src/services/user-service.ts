@@ -2,6 +2,7 @@ import { getAllUsers, findUserById, submitNewUser, UpdateOnExistingUser } from "
 import { Users } from "../models/Users";
 import { SaveProfilePicture } from "../daos/CloudStorage/user-images";
 import { bucketBaseUrl } from "../daos/CloudStorage";
+import { expressEventEmitter, customExpressEvents } from "../event-listeners";
 
 
 
@@ -27,6 +28,11 @@ export async function SubmitNewUserService(newUser:Users):Promise<Users>{
         }
         let savedUser =  await submitNewUser(newUser)
         await SaveProfilePicture(contentType, imageBase64Data, `users/${newUser.username}/profile.${contentType}`)
+
+        // with event driven design after I completed the save a user process 
+        // I send an event saying this done with relevant info 
+        expressEventEmitter.emit(customExpressEvents.NEW_USER, newUser)
+        
         return savedUser
     }catch (e){
         console.log(e)
