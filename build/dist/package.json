@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --exec ts-node src/index.ts",
-    "build": "tsc && npm prune --production && cp ./package.json ./build",
+    "build": "npm install && tsc && npm prune --production && cp ./package.json ./build",
     "deploy": "node dist/index.js"
   },
   "repository": {

@@ -1,0 +1,1 @@
+{"version":3,"file":"AuthFailureError.js","sourceRoot":"","sources":["../../../../src/errors/AuthFailureError.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;AAAA,yCAAwC;AAExC;IAAsC,oCAAS;IAC3C;eACI,kBAAM,GAAG,EAAE,8BAA8B,CAAC;IAC9C,CAAC;IACL,uBAAC;AAAD,CAAC,AAJD,CAAsC,qBAAS,GAI9C;AAJY,4CAAgB"}
