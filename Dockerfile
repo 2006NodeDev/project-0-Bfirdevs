@@ -15,4 +15,4 @@ ENV GOOGLE_APPLICATION_CREDENTIALS="~/project-0-Bfirdevs/manifest-frame-279818-5
 #this is the command that starts our application
 CMD ['npm', 'run', 'deploy']    
 
-# FROM and CMD that we need to put in docker file
+# FROM and CMD that we need to put in docker file 
