@@ -13,6 +13,6 @@ COPY manifest-frame-279818-53f2e55cde60.json project-0-Bfirdevs
 
 
 #this is the command that starts our application
-CMD ['npm', 'run', 'deploy', '--prefix', 'project-0-Bfirdevs/build']    
+CMD npm run deploy --prefix project-0-Bfirdevs/build    
 
 # FROM and CMD that we need to put in docker file 
